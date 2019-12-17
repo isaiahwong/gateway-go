@@ -1,0 +1,1059 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "payment/payment.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/payment/create": {
+      "post": {
+        "summary": "Payment",
+        "operationId": "CreatePayment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/paymentCreatePaymentResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/paymentCreatePaymentRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PaymentService"
+        ]
+      }
+    },
+    "/v1/payment/p/order/create": {
+      "post": {
+        "summary": "Paypal",
+        "operationId": "PaypalCreateOrder",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/paymentPaypalCreateOrderResponse"
+            }
+          }
+        },
+        "tags": [
+          "PaymentService"
+        ]
+      }
+    },
+    "/v1/payment/p/order/process": {
+      "post": {
+        "operationId": "PaypalProcessOrder",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/paymentResponse"
+            }
+          }
+        },
+        "tags": [
+          "PaymentService"
+        ]
+      }
+    },
+    "/v1/payment/paypal/webhook/order": {
+      "post": {
+        "operationId": "PaypalOrderWebhook",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/paymentResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/paymentPaypalWebhook"
+            }
+          }
+        ],
+        "tags": [
+          "PaymentService"
+        ]
+      }
+    },
+    "/v1/payment/paypal/webhook/test": {
+      "post": {
+        "operationId": "PaypalTestWebhook",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/paymentResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/paymentPaypalWebhook"
+            }
+          }
+        ],
+        "tags": [
+          "PaymentService"
+        ]
+      }
+    },
+    "/v1/payment/refund": {
+      "post": {
+        "operationId": "Refund",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/paymentRefundResponse"
+            }
+          }
+        },
+        "tags": [
+          "PaymentService"
+        ]
+      }
+    },
+    "/v1/payment/retrieve": {
+      "post": {
+        "operationId": "RetrievePayment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/paymentRetrievePaymentResponse"
+            }
+          }
+        },
+        "tags": [
+          "PaymentService"
+        ]
+      }
+    },
+    "/v1/payment/s/card/add": {
+      "post": {
+        "operationId": "StripeAddCard",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/paymentAddCardResponse"
+            }
+          }
+        },
+        "tags": [
+          "PaymentService"
+        ]
+      }
+    },
+    "/v1/payment/s/charge": {
+      "post": {
+        "operationId": "StripeCharge",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/paymentOnStripeChargeResponse"
+            }
+          }
+        },
+        "tags": [
+          "PaymentService"
+        ]
+      }
+    },
+    "/v1/payment/s/intent/setup": {
+      "post": {
+        "summary": "Stripe",
+        "operationId": "StripeSetupIntent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/paymentSetupIntentResponse"
+            }
+          }
+        },
+        "tags": [
+          "PaymentService"
+        ]
+      }
+    },
+    "/v1/payment/stripe/webhook/paymentintent": {
+      "post": {
+        "operationId": "StripePaymentIntentWebhook",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/paymentResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/paymentStripeWebhook"
+            }
+          }
+        ],
+        "tags": [
+          "PaymentService"
+        ]
+      }
+    },
+    "/v1/payment/stripe/webhook/test": {
+      "post": {
+        "operationId": "StripeTestWebhook",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/paymentResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/paymentStripeWebhook"
+            }
+          }
+        ],
+        "tags": [
+          "PaymentService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "BillingDetailsAddress": {
+      "type": "object",
+      "properties": {
+        "city": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "line1": {
+          "type": "string"
+        },
+        "line2": {
+          "type": "string"
+        },
+        "postal_code": {
+          "type": "number",
+          "format": "double"
+        },
+        "state": {
+          "type": "string"
+        }
+      }
+    },
+    "CardTHREEDSecureUsage": {
+      "type": "object",
+      "properties": {
+        "supported": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
+    "InvoiceSettingsCustomFields": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "ItemsData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "quantity": {
+          "type": "string",
+          "format": "int64"
+        },
+        "metadata": {
+          "type": "string",
+          "format": "byte"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "PaymentIntentLastPaymentError": {
+      "type": "object",
+      "properties": {
+        "charge": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "doc_url": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "param": {
+          "type": "string"
+        },
+        "payment_method": {
+          "$ref": "#/definitions/paymentPaymentMethod"
+        }
+      }
+    },
+    "PaymentStripe": {
+      "type": "object",
+      "properties": {
+        "customer": {
+          "type": "string"
+        },
+        "default_payment_method": {
+          "type": "string"
+        }
+      }
+    },
+    "TransactionTransactionError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "stripe_error_code": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentAddCardResponse": {
+      "type": "object",
+      "properties": {
+        "all_cards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/paymentPaymentMethod"
+          }
+        },
+        "invoice_settings": {
+          "$ref": "#/definitions/paymentInvoiceSettings"
+        },
+        "success": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
+    "paymentApplicationContext": {
+      "type": "object",
+      "properties": {
+        "landing_page": {
+          "type": "string"
+        },
+        "return_url": {
+          "type": "string"
+        },
+        "cancel_url": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentBillingDetails": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "$ref": "#/definitions/BillingDetailsAddress"
+        },
+        "email": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentCard": {
+      "type": "object",
+      "properties": {
+        "brand": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "exp_month": {
+          "type": "number",
+          "format": "double"
+        },
+        "exp_year": {
+          "type": "number",
+          "format": "double"
+        },
+        "fingerprint": {
+          "type": "string"
+        },
+        "funding": {
+          "type": "string"
+        },
+        "last4": {
+          "type": "number",
+          "format": "double"
+        },
+        "three_d_secure_usage": {
+          "$ref": "#/definitions/CardTHREEDSecureUsage"
+        }
+      }
+    },
+    "paymentCharge": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "object": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "amount_refunded": {
+          "type": "number",
+          "format": "double"
+        },
+        "balance_transaction": {
+          "type": "string"
+        },
+        "billing_details": {
+          "$ref": "#/definitions/paymentBillingDetails"
+        },
+        "captured": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "created": {
+          "type": "number",
+          "format": "double"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "customer": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "destination": {
+          "type": "string"
+        },
+        "dispute": {
+          "type": "string"
+        },
+        "failure_code": {
+          "type": "string"
+        },
+        "failure_message": {
+          "type": "string"
+        },
+        "fraud_details": {
+          "$ref": "#/definitions/paymentFraudDetails"
+        },
+        "paid": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "payment_intent": {
+          "type": "string"
+        },
+        "payment_method": {
+          "type": "string"
+        },
+        "payment_method_details": {
+          "$ref": "#/definitions/paymentPaymentMethodDetails"
+        },
+        "receipt_email": {
+          "type": "string"
+        },
+        "receipt_number": {
+          "type": "string"
+        },
+        "receipt_url": {
+          "type": "string"
+        },
+        "review": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentCharges": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/paymentCharge"
+          }
+        },
+        "has_more": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "total_count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "url": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentCreatePaymentRequest": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentCreatePaymentResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "payment": {
+          "$ref": "#/definitions/paymentPayment"
+        }
+      }
+    },
+    "paymentFraudDetails": {
+      "type": "object",
+      "properties": {
+        "stripe_report": {
+          "type": "string"
+        },
+        "user_report": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentInvoiceSettings": {
+      "type": "object",
+      "properties": {
+        "custom_fields": {
+          "$ref": "#/definitions/InvoiceSettingsCustomFields"
+        },
+        "default_payment_method": {
+          "type": "string"
+        },
+        "footer": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentItems": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "string",
+          "format": "byte"
+        },
+        "total_items": {
+          "type": "string",
+          "format": "int64"
+        },
+        "shipping": {
+          "type": "number",
+          "format": "double"
+        },
+        "tax": {
+          "type": "number",
+          "format": "double"
+        },
+        "shipping_discount": {
+          "type": "number",
+          "format": "double"
+        },
+        "discount": {
+          "type": "number",
+          "format": "double"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "subtotal": {
+          "type": "number",
+          "format": "double"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ItemsData"
+          }
+        }
+      }
+    },
+    "paymentMetadata": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "string"
+        },
+        "transaction": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentOnStripeChargeResponse": {
+      "type": "object",
+      "properties": {
+        "payment_intent": {
+          "$ref": "#/definitions/paymentPaymentIntent"
+        },
+        "success": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
+    "paymentPayment": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "object": {
+          "type": "string"
+        },
+        "user": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "default_provider": {
+          "type": "string"
+        },
+        "stripe": {
+          "$ref": "#/definitions/PaymentStripe"
+        },
+        "transactions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/paymentTransaction"
+          }
+        },
+        "updated": {
+          "type": "number",
+          "format": "double"
+        },
+        "created": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "paymentPaymentIntent": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "object": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "canceled_at": {
+          "type": "number",
+          "format": "double"
+        },
+        "cancellation_reason": {
+          "type": "string"
+        },
+        "capture_method": {
+          "type": "string"
+        },
+        "charges": {
+          "$ref": "#/definitions/paymentCharges"
+        },
+        "client_secret": {
+          "type": "string"
+        },
+        "confirmation_method": {
+          "type": "string"
+        },
+        "created": {
+          "type": "number",
+          "format": "double"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "customer": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "invoice": {
+          "type": "string"
+        },
+        "last_payment_error": {
+          "$ref": "#/definitions/PaymentIntentLastPaymentError"
+        },
+        "livemode": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "metadata": {
+          "$ref": "#/definitions/paymentMetadata"
+        },
+        "payment_method": {
+          "type": "string"
+        },
+        "payment_method_types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "receipt_email": {
+          "type": "string"
+        },
+        "review": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentPaymentMethod": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "object": {
+          "type": "string"
+        },
+        "billing_details": {
+          "$ref": "#/definitions/paymentBillingDetails"
+        },
+        "card": {
+          "$ref": "#/definitions/paymentCard"
+        },
+        "created": {
+          "type": "number",
+          "format": "double"
+        },
+        "customer": {
+          "type": "string"
+        },
+        "livemode": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "metadata": {
+          "$ref": "#/definitions/paymentMetadata"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentPaymentMethodDetails": {
+      "type": "object",
+      "properties": {
+        "card": {
+          "$ref": "#/definitions/paymentCard"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentPaypalCreateOrderResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "order_id": {
+          "type": "string"
+        },
+        "href": {
+          "type": "string"
+        },
+        "rel": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentPaypalWebhook": {
+      "type": "object",
+      "properties": {
+        "body": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "paymentRefund": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "object": {
+          "type": "string"
+        },
+        "transaction": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "failure_refund": {
+          "type": "string"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "updated": {
+          "type": "number",
+          "format": "double"
+        },
+        "created": {
+          "type": "number",
+          "format": "double"
+        },
+        "stripe_refund": {
+          "type": "string"
+        },
+        "paypal_refund": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentRefundResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "refund": {
+          "$ref": "#/definitions/paymentRefund"
+        },
+        "transaction": {
+          "$ref": "#/definitions/paymentTransaction"
+        }
+      }
+    },
+    "paymentResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
+    "paymentRetrievePaymentResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "payment": {
+          "$ref": "#/definitions/paymentPayment"
+        }
+      }
+    },
+    "paymentSetupIntentResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "client_secret": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentStripeWebhook": {
+      "type": "object",
+      "properties": {
+        "body": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "paymentTransaction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "object": {
+          "type": "string"
+        },
+        "payment": {
+          "type": "string"
+        },
+        "user": {
+          "type": "string"
+        },
+        "refund": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "paypal_order_id": {
+          "type": "string"
+        },
+        "stripe_payment_intent": {
+          "type": "string"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "items": {
+          "$ref": "#/definitions/paymentItems"
+        },
+        "total": {
+          "type": "number",
+          "format": "double"
+        },
+        "coupon": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "updated": {
+          "type": "number",
+          "format": "double"
+        },
+        "created": {
+          "type": "number",
+          "format": "double"
+        },
+        "transitory_expires": {
+          "type": "number",
+          "format": "double"
+        },
+        "transaction_error": {
+          "$ref": "#/definitions/TransactionTransactionError"
+        }
+      }
+    }
+  }
+}

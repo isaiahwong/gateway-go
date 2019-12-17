@@ -1,0 +1,278 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "auth/auth.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/auth/ia": {
+      "post": {
+        "operationId": "IsAuthenticated",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authAuthenticateResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authAuthenticateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "AuthProfileEmails": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "AuthProfileName": {
+      "type": "object",
+      "properties": {
+        "familyName": {
+          "type": "string"
+        },
+        "givenName": {
+          "type": "string"
+        },
+        "middleName": {
+          "type": "string"
+        }
+      }
+    },
+    "AuthProfilePhotos": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "AuthUserProfileFacebook": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/definitions/AuthProfileName"
+        },
+        "emails": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AuthProfileEmails"
+          }
+        },
+        "photos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AuthProfilePhotos"
+          }
+        }
+      }
+    },
+    "AuthUserProfileGoogle": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/definitions/AuthProfileName"
+        },
+        "emails": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AuthProfileEmails"
+          }
+        },
+        "photos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AuthProfilePhotos"
+          }
+        }
+      }
+    },
+    "PreferencesEmailNotifications": {
+      "type": "object",
+      "properties": {
+        "unsubscribe_from_all": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
+    "PreferencesPushNotifications": {
+      "type": "object",
+      "properties": {
+        "unsubscribe_from_all": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
+    "UserAuth": {
+      "type": "object",
+      "properties": {
+        "facebook": {
+          "$ref": "#/definitions/AuthUserProfileFacebook"
+        },
+        "google": {
+          "$ref": "#/definitions/AuthUserProfileGoogle"
+        },
+        "email": {
+          "type": "string"
+        },
+        "firstname": {
+          "type": "string"
+        },
+        "lastname": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "picture": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "password_hash_method": {
+          "type": "string"
+        },
+        "password_id": {
+          "type": "string"
+        },
+        "password_reset_token": {
+          "type": "string"
+        },
+        "password_reset_expires": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "password_modified": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "verified": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "verified_date": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "verification_token": {
+          "type": "string"
+        },
+        "verification_token_expires": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "captcha_challenge_ts": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "UserPreferences": {
+      "type": "object",
+      "properties": {
+        "language": {
+          "type": "string"
+        },
+        "email_notifications": {
+          "$ref": "#/definitions/PreferencesEmailNotifications"
+        },
+        "push_notifications": {
+          "$ref": "#/definitions/PreferencesPushNotifications"
+        }
+      },
+      "title": "Preferences"
+    },
+    "authAuthenticateRequest": {
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string"
+        }
+      }
+    },
+    "authAuthenticateResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/authUser"
+        },
+        "isAuthenticated": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
+    "authUser": {
+      "type": "object",
+      "properties": {
+        "auth": {
+          "$ref": "#/definitions/UserAuth"
+        },
+        "preferences": {
+          "$ref": "#/definitions/UserPreferences"
+        },
+        "created_at": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "updated_at": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "logged_in": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "logged_in_ip": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

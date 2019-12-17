@@ -1,0 +1,13 @@
+apiVersion: skaffold/v1
+kind: Config
+metadata:
+  name: gateway
+build:
+  artifacts:
+  - image: registry.gitlab.com/isaiahwong/go/api/gateway
+    docker:
+      dockerfile: Dockerfile.dev
+deploy:
+  kubectl:
+    manifests:
+    - manifest/gateway.yaml
