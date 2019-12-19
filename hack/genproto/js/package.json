@@ -8,7 +8,6 @@
   },
   "author": "isaiahwong",
   "dependencies": {
-    "@grpc/proto-loader": "^0.5.3",
-    "grpc": "^1.24.2"
+    "@grpc/proto-loader": "^0.5.3"
   }
 }

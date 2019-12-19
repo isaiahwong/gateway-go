@@ -72,7 +72,7 @@ func mapEnvWithDefaults(envKey string, defaults string) string {
 
 // LoadEnv loads environment variables for Application
 func loadEnv() {
-	err := godotenv.Load()
+	err := godotenv.Load("./.env", ".env")
 	if err != nil {
 		fmt.Println(".env not loaded", err)
 	}
@@ -80,7 +80,7 @@ func loadEnv() {
 	config = &EnvConfig{
 		AppEnv:            mapEnvWithDefaults("APP_ENV", "development"),
 		Production:        mapEnvWithDefaults("APP_ENV", "development") == "true",
-		DisableK8S:        mapEnvWithDefaults("DISABLE_K8S_CLIENT", "false") == "true",
+		DisableK8S:        mapEnvWithDefaults("DISABLE_K8S_CLIENT", "true") == "true",
 		Port:              mapEnvWithDefaults("PORT", "5000"),
 		WebhookPort:       mapEnvWithDefaults("WEBHOOK_PORT", "8443"),
 		WebhookKeyDir:     mapEnvWithDefaults("WEBHOOK_KEY_DIR", "/run/secrets/tls/tls.key"),
@@ -157,8 +157,23 @@ func main() {
 	}()
 
 	go func() {
-		// Start Webbhook Server
-		if err := ws.Server.ListenAndServeTLS(config.WebhookCertDir, config.WebhookKeyDir); err != nil && err != http.ErrServerClosed {
+		tls := true
+		if config.WebhookSecretKey == "" {
+			logger.Warn("WebhookSecretKey not defined, tls disabled")
+			tls = false
+		}
+		if config.WebhookKeyDir == "" {
+			logger.Warn("WebhookSecretKey not defined, tls disabled")
+			tls = false
+		}
+		if tls {
+			// Start Webbhook Server
+			if err := ws.Server.ListenAndServeTLS(config.WebhookCertDir, config.WebhookKeyDir); err != nil && err != http.ErrServerClosed {
+				logger.Fatalf("Webhook server: %s\n", err)
+			}
+			return
+		}
+		if err := ws.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Fatalf("Webhook server: %s\n", err)
 		}
 	}()

@@ -1,5 +1,9 @@
 package k8s
 
+import (
+	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
+)
+
 // Ports represent k8s ports
 type Ports struct {
 	Name       string      `json:"name"`
@@ -27,6 +31,7 @@ type APIService struct {
 	Namespace      string
 	APIversion     string `json:"apiVersion"`
 	ResourceType   string
+	GRPCClientConn *gwruntime.ServeMux
 }
 
 // Labels represent k8s labels

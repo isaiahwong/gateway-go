@@ -6,8 +6,12 @@ type MethodDesc struct {
 }
 
 type ServiceDesc struct {
-	Package      string       `json:"package"`
-	ServiceName  string       `json:"serviceName"`
-	OriginalName string       `json:"originalName"`
-	Methods      []MethodDesc `json:"methods"`
+	ServiceName     string       `json:"serviceName"`
+	Methods         []MethodDesc `json:"methods"`
+	PackageSVC      string       `json:"packageSvc"`
+	Package         string       `json:"package"`
+	CurrentPackage  string       `json:"currentPackage"`
+	OriginalPackage string       `json:"originalPackage"`
+	Path            string       `json:"path"`
+	FilePath        string       `json:"filePath"`
 }

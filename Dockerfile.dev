@@ -9,4 +9,4 @@ RUN go mod download
 # COPY the source code as the last step
 COPY . .
 
-CMD ["go", "run", "main.go"]
+CMD ["go", "run", "cmd/gateway/main.go"]
