@@ -7,7 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func notFound(c *gin.Context) {
+// notFoundMW aka not found middleware
+func notFoundMW(c *gin.Context) {
 	c.JSON(404, gin.H{
 		"success": false,
 		"error":   "not_found",

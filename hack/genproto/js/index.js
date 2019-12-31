@@ -1,7 +1,7 @@
 const fs = require('fs');
 const protoLoader = require('@grpc/proto-loader');
 
-const PROTO_GEN = `${__dirname}/../../../proto-gen`;
+const PROTO_GEN = `${__dirname}/../../../protogen`;
 const PROTOS = `${__dirname}/../../../proto/api`;
 const INCLUDES = [
   `${__dirname}/../../../proto/api`,

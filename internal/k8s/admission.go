@@ -12,7 +12,7 @@ type AdmissionGetter interface {
 // AdmissionInterface has methods to work with K8S Admission Object
 type AdmissionInterface interface {
 	Unmarshal(d []byte) (*AdmissionRegistration, error)
-	UnmarshalObject(d []byte) (*Object, error)
+	UnmarshalK8SObject(d []byte) (*K8SObject, error)
 }
 
 // admission implements Admission interface
@@ -30,11 +30,11 @@ func (a *admission) Unmarshal(d []byte) (*AdmissionRegistration, error) {
 	return ar, nil
 }
 
-func (a *admission) UnmarshalObject(d []byte) (*Object, error) {
+func (a *admission) UnmarshalK8SObject(d []byte) (*K8SObject, error) {
 	if len(d) <= 0 {
 		return nil, EmptyData()
 	}
-	var o *Object = &Object{}
+	var o *K8SObject = &K8SObject{}
 	err := json.Unmarshal(d, o)
 	if err != nil {
 		return nil, err

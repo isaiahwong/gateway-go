@@ -6,7 +6,11 @@ COPY go.sum .
 
 # Get dependancies - will also be cached if we won't change mod/sum
 RUN go mod download
-# COPY the source code as the last step
-COPY . .
+
+# For some reason .dockerignore doesn't work.
+COPY cmd ./cmd
+COPY internal ./internal
+COPY protogen ./protogen
+COPY .env .
 
 CMD ["go", "run", "cmd/gateway/main.go"]

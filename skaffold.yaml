@@ -1,7 +1,7 @@
 apiVersion: skaffold/v1
 kind: Config
 metadata:
-  name: gateway
+  name: gateway-go
 build:
   artifacts:
   - image: registry.gitlab.com/isaiahwong/go/api/gateway
@@ -11,3 +11,4 @@ deploy:
   kubectl:
     manifests:
     - manifest/gateway.yaml
+    - manifest/ingress.yaml

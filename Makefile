@@ -12,22 +12,21 @@ help: ## List targets & descriptions
 
 build:
 	docker build -t $(IMAGE_NAME):latest . --rm=true
+	docker rmi $( docker images | grep '<none>') --force 2>/dev/null
 
 genhealth:
 	protoc --go_out=plugins=grpc:proto -I $(PROTO_DIR) $(PROTO_DIR)/health.proto
 
 genproto:
-	if [ ! -d "proto-gen" ]; then \
-			mkdir proto-gen; \
+	if [ ! -d "protogen" ]; then \
+			mkdir protogen; \
 	fi
 
-	protoc -I./proto/api -I./proto/third_party/googleapis --go_out=plugins=grpc:./proto-gen ./proto/api/payment/*.proto
+	protoc -I./proto/api -I./proto/third_party/googleapis --go_out=plugins=grpc:./protogen ./proto/api/payment/*.proto
 
 	protoc \
 		-I./proto/api \
 		-I./proto/third_party/googleapis \
-		--grpc-gateway_out=logtostderr=true,allow_repeated_fields_in_body=true:proto-gen \
-		--swagger_out=logtostderr=true:proto-gen \
+		--grpc-gateway_out=logtostderr=true,allow_repeated_fields_in_body=true:protogen \
+		--swagger_out=logtostderr=true:protogen \
 		./proto/api/payment/*.proto
-
-

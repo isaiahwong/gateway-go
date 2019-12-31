@@ -72,7 +72,7 @@ func mapEnvWithDefaults(envKey string, defaults string) string {
 
 // LoadEnv loads environment variables for Application
 func loadEnv() {
-	err := godotenv.Load("./.env", ".env")
+	err := godotenv.Load()
 	if err != nil {
 		fmt.Println(".env not loaded", err)
 	}
@@ -157,23 +157,8 @@ func main() {
 	}()
 
 	go func() {
-		tls := true
-		if config.WebhookSecretKey == "" {
-			logger.Warn("WebhookSecretKey not defined, tls disabled")
-			tls = false
-		}
-		if config.WebhookKeyDir == "" {
-			logger.Warn("WebhookSecretKey not defined, tls disabled")
-			tls = false
-		}
-		if tls {
-			// Start Webbhook Server
-			if err := ws.Server.ListenAndServeTLS(config.WebhookCertDir, config.WebhookKeyDir); err != nil && err != http.ErrServerClosed {
-				logger.Fatalf("Webhook server: %s\n", err)
-			}
-			return
-		}
-		if err := ws.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		// Start webhook server
+		if err := ws.Server.ListenAndServeTLS(config.WebhookCertDir, config.WebhookKeyDir); err != nil && err != http.ErrServerClosed {
 			logger.Fatalf("Webhook server: %s\n", err)
 		}
 	}()

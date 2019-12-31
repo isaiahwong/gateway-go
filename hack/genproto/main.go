@@ -12,10 +12,6 @@ import (
 	"github.com/isaiahwong/gateway-go/hack/genproto/internal"
 )
 
-type data struct {
-	Name string
-}
-
 // read reads generated descriptor json file and unmarshals it
 func read(svcs *[]internal.ServiceDesc, file string) error {
 	if file == "" {
@@ -51,7 +47,7 @@ func main() {
 	}
 	// Get options from flags
 	descriptor := flag.String("d", dir+"/descriptor.json", "descriptor ")
-	out := flag.String("o", dir+"/../../internal/server/proto.go", "output of proto")
+	out := flag.String("o", dir+"/../../protogen/protos.pb.gw.go", "output of gwprotos")
 	flag.Parse()
 	// Parse JSON file
 	var svcs []internal.ServiceDesc

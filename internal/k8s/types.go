@@ -1,11 +1,9 @@
 package k8s
 
-import (
-	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
-)
+import "google.golang.org/grpc"
 
 // Ports represent k8s ports
-type Ports struct {
+type Port struct {
 	Name       string      `json:"name"`
 	Protocol   string      `json:"protocol"`
 	Port       int         `json:"port"`
@@ -23,15 +21,15 @@ type APIAuthentication struct {
 // APIService encapsulates k8s object into a simpler format
 // Path path to route to service '/api/v1/payment
 type APIService struct {
-	Path           string `json:"path"`
-	DNSPath        string
-	Ports          []Ports
+	Path           string            `json:"path"`
+	DNSPath        string            `validate:"required"`
+	Ports          []Port            `validate:"required"`
 	Authentication APIAuthentication `json:"authentication"`
-	ServiceName    string
-	Namespace      string
-	APIversion     string `json:"apiVersion"`
-	ResourceType   string
-	GRPCClientConn *gwruntime.ServeMux
+	ServiceName    string            `validate:"required"`
+	Namespace      string            `validate:"required"`
+	APIversion     string            `json:"apiVersion"`
+	ResourceType   string            `validate:"required"`
+	GRPCClientConn *grpc.ClientConn
 }
 
 // Labels represent k8s labels
@@ -54,11 +52,11 @@ type Metadata struct {
 
 // Spec represents k8s spec
 type Spec struct {
-	Ports []Ports `json:"Ports" validate:"required"`
+	Ports []Port `json:"Ports" validate:"required"`
 }
 
-// Object represents k8s object
-type Object struct {
+// K8SObject represents k8s object
+type K8SObject struct {
 	Metadata Metadata `json:"Metadata" validate:"required"`
 	Spec     Spec     `json:"Spec" validate:"required"`
 }
@@ -70,11 +68,11 @@ type Kind struct {
 
 // AdmissionRequest represents k8s AdmissionRegistration request
 type AdmissionRequest struct {
-	Operation string `json:"operation" validate:"required"`
-	Kind      Kind   `json:"kind" validate:"required"`
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	Object    Object `json:"object" validate:"required"`
+	Operation string    `json:"operation" validate:"required"`
+	Kind      Kind      `json:"kind" validate:"required"`
+	Name      string    `json:"name"`
+	Namespace string    `json:"namespace"`
+	Object    K8SObject `json:"object" validate:"required"`
 }
 
 // AdmissionRegistration represents k8s admissionregistration.k8s.io/v1

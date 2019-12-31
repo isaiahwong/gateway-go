@@ -13,13 +13,13 @@ type APIServicesGetter interface {
 
 // APIServicesInterface has methods to work with APIService
 type APIServicesInterface interface {
-	ObjectToAPI(*Object) (*APIService, error)
+	ObjectToAPI(*K8SObject) (*APIService, error)
 }
 
 type apiservices struct{}
 
 // ObjectToAPI maps Object to APIService struct
-func (a *apiservices) ObjectToAPI(o *Object) (*APIService, error) {
+func (a *apiservices) ObjectToAPI(o *K8SObject) (*APIService, error) {
 	var s *APIService = &APIService{}
 	validate := validator.Instance()
 	err := validate.Struct(o)
@@ -35,6 +35,7 @@ func (a *apiservices) ObjectToAPI(o *Object) (*APIService, error) {
 	// Parse annotations
 	if o.Metadata.Annotations.Config != "" {
 		err = json.Unmarshal([]byte(o.Metadata.Annotations.Config), s)
+		// TODO: Handle JSON Error
 		if err != nil {
 			return nil, err
 		}

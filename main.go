@@ -32,7 +32,7 @@ func genCode() error {
 	gen := buildCmd(
 		"go", "run", "hack/genproto/main.go",
 		"-d", dir+"/hack/genproto/descriptor.json",
-		"-o", dir+"/internal/server/proto.go",
+		"-o", dir+"/protogen/proto.pb.gw.go",
 	)
 	if err := gen.Run(); err != nil {
 		return err

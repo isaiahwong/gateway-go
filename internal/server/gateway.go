@@ -1,5 +1,6 @@
 package server
 
+// TODO Implement queue
 import (
 	"context"
 	"fmt"
@@ -14,6 +15,8 @@ import (
 	"github.com/isaiahwong/gateway-go/internal/k8s/enum"
 	"github.com/isaiahwong/gateway-go/internal/observer"
 	"github.com/isaiahwong/gateway-go/internal/util/log"
+	"github.com/isaiahwong/gateway-go/internal/util/validator"
+	"github.com/isaiahwong/gateway-go/protogen"
 )
 
 // GatewayServer encapsulates GatewayServer and Observer
@@ -58,6 +61,43 @@ func (gs *GatewayServer) OnNotify(e observer.Event) {
 	gs.directAdmission(e.Data)
 }
 
+func gatewayMiddleware(gw *gwruntime.ServeMux) func(*gin.Engine) {
+	return func(r *gin.Engine) {
+		if gw == nil {
+			return
+		}
+		// Proxies to gateway services
+		r.Any("/v1/*any", gin.WrapF(gw.ServeHTTP))
+	}
+}
+
+func httpMiddleware(r *gin.Engine) {
+	r.Use(gin.Recovery())
+	// Health route
+	r.GET("/hz", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "success",
+		})
+	})
+	r.NoRoute(notFoundMW)
+}
+
+func newGrpcMux(ctx context.Context, opts []gwruntime.ServeMuxOption) *gwruntime.ServeMux {
+	mux := gwruntime.NewServeMux(opts...)
+	return mux
+}
+
+func newRouter(attachMiddleware ...func(r *gin.Engine)) (*gin.Engine, error) {
+	r := gin.New()
+	if attachMiddleware == nil {
+		return r, nil
+	}
+	for _, m := range attachMiddleware {
+		m(r)
+	}
+	return r, nil
+}
+
 // updateServices updates gateway services
 func (gs *GatewayServer) updateServices(service *k8s.APIService) {
 	if service == nil {
@@ -75,6 +115,62 @@ func (gs *GatewayServer) updateServices(service *k8s.APIService) {
 	gs.services[service.DNSPath] = service
 }
 
+func applyHTTP(r *gin.Engine, path string) error {
+	if r == nil {
+		return InvalidParams("applyHttp: gin r router is nil")
+	}
+	if path == "" {
+		return InvalidParams("applyHttp: path is empty")
+	}
+	// TODO: Test connectivity
+	rp := reverseProxy(path)
+	// Routes GET root path
+	r.GET(path, rp)
+	// Routes all requests to service
+	r.Any(fmt.Sprintf("%v/*any", path), rp)
+	return nil
+}
+
+func applyGrpc(mux *gwruntime.ServeMux, r *gin.Engine, serviceName string, conn *grpc.ClientConn, target string, path string) error {
+	var err error
+	var svc *protogen.ServiceDesc
+	if r == nil {
+		return InvalidParams("r router is nil")
+	}
+	if serviceName == "" {
+		return InvalidParams("serviceName is empty")
+	}
+	// Check if service exists in proto definition
+	for k, s := range protogen.GetProtos() {
+		// Splits service name i.e api.auth.authservice ["api", "auth", "authservice"]
+		split := strings.Split(k, ".")
+		// Formats it to dash i.e api-auth-authservice
+		dash := strings.ToLower(strings.Join(split, "-"))
+		// Formats it to underscore i.e api_auth_authservice
+		underscore := strings.ToLower(strings.Join(split, "-"))
+		if serviceName == dash || serviceName == underscore {
+			svc = &s
+			break
+		}
+	}
+	if svc == nil {
+		return NotFound("No gw proto generated or found for " + serviceName)
+	}
+	// Create connection
+	if conn == nil {
+		// TODO: TLS Configuration
+		conn, err = grpc.DialContext(context.Background(), target, grpc.WithInsecure())
+		if err != nil {
+			return nil
+		}
+	}
+	svc.Handler(context.Background(), mux, conn)
+	r.Any(path+"/*any", func(c *gin.Context) {
+		mux.ServeHTTP(c.Writer, c.Request)
+	})
+	return nil
+}
+
 // applyRoutes creates a new replaces the server's http handler with
 // newly populated routes
 func (gs *GatewayServer) applyRoutes() {
@@ -86,18 +182,37 @@ func (gs *GatewayServer) applyRoutes() {
 	if err != nil {
 		gs.opts.logger.Errorf("applyRoutes: %v", err)
 	}
-	// Create a new http router
+	// Check if services is empty
+	if len(gs.services) <= 0 {
+		return
+	}
+	mux := newGrpcMux(context.Background(), nil)
+	// Iterate services mapping them to gin router
 	for _, svc := range gs.services {
+		validate := validator.Instance()
+		// Ensures required fields are populated
+		err := validate.Struct(svc)
+		if err != nil {
+			gs.opts.logger.Error(err)
+			return
+		}
+		// Iterate exposed ports of services
 		for _, port := range svc.Ports {
-			gs.opts.logger.Println(svc.DNSPath, port.Port)
 			switch port.Name {
 			case "http":
 				path := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
-				rp := reverseProxy(fmt.Sprintf("http://%v:%v%v", svc.DNSPath, port.Port, path))
-				// Routes GET root path
-				r.GET(path, rp)
-				// Routes all requests to service
-				r.Any(fmt.Sprintf("%v/*any", path), rp)
+				path = fmt.Sprintf("http://%v:%v%v", svc.DNSPath, port, path)
+				err := applyHTTP(r, path)
+				if err != nil {
+					gs.opts.logger.Error(err)
+				}
+			case "grpc":
+				target := fmt.Sprintf("%v:%v", svc.DNSPath, port)
+				path := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
+				err := applyGrpc(mux, r, svc.ServiceName, svc.GRPCClientConn, target, path)
+				if err != nil {
+					gs.opts.logger.Error(err)
+				}
 			}
 		}
 	}
@@ -114,7 +229,7 @@ func (gs *GatewayServer) fetchAllServices() error {
 		return err
 	}
 	for _, d := range svcs {
-		o, err := gs.opts.k8sClient.CoreAPI().Admission().UnmarshalObject(d)
+		o, err := gs.opts.k8sClient.CoreAPI().Admission().UnmarshalK8SObject(d)
 		if err != nil {
 			return err
 		}
@@ -164,61 +279,6 @@ func (gs *GatewayServer) create(ar *k8s.AdmissionRegistration) {
 	gs.updateServices(s)
 	gs.applyRoutes()
 }
-
-type ServiceDesc struct {
-	ServiceName    string
-	PackageSVC     string
-	Package        string
-	CurrentPackage string
-	Handler        func(context.Context, *gwruntime.ServeMux, *grpc.ClientConn) error
-}
-
-func gatewayMiddleware(gw *gwruntime.ServeMux) func(*gin.Engine) {
-	return func(r *gin.Engine) {
-		if gw == nil {
-			return
-		}
-		// Proxies to gateway services
-		r.Any("/v1/*any", gin.WrapF(gw.ServeHTTP))
-	}
-}
-
-func httpMiddleware(r *gin.Engine) {
-	r.Use(gin.Recovery())
-	// Health route
-	r.GET("/hz", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status": "success",
-		})
-	})
-	r.NoRoute(notFound)
-}
-
-func newRouter(attachMiddleware ...func(r *gin.Engine)) (*gin.Engine, error) {
-	r := gin.New()
-	if attachMiddleware == nil {
-		return r, nil
-	}
-	for _, m := range attachMiddleware {
-		m(r)
-	}
-	return r, nil
-}
-
-// func newGateway(ctx context.Context, opts []gwruntime.ServeMuxOption) (*gwruntime.ServeMux, error) {
-// 	mux := gwruntime.NewServeMux(opts...)
-// 	conn, err := grpc.DialContext(ctx, "payment-service.default:50051", grpc.WithInsecure())
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	for k, s := range GetProtos() {
-// 		err = f(ctx, mux, conn)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 	}
-// 	return mux, nil
-// }
 
 // NewGatewayServer returns a new gin server
 func NewGatewayServer(port string, opt ...GatewayOption) (*GatewayServer, error) {
