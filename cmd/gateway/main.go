@@ -97,7 +97,7 @@ func init() {
 }
 
 // Kills server gracefully
-func gracefully(s *http.Server) {
+func gracefully(s ...*http.Server) {
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.
 	quit := make(chan os.Signal)
@@ -106,13 +106,16 @@ func gracefully(s *http.Server) {
 	// kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	logger.Println("Shutdown Servers")
+	logger.Infoln("Shutting down servers")
 
 	ctx := context.Background()
 
-	if err := s.Shutdown(ctx); err != nil {
-		logger.Fatal("Error Shutting Down :", err)
+	for _, srv := range s {
+		if err := srv.Shutdown(ctx); err != nil {
+			logger.Errorf("Error Shutting Down : %v", err)
+		}
 	}
+
 }
 
 // Execute the entry point for gateway
@@ -150,11 +153,31 @@ func main() {
 	}()
 
 	go func() {
-		// Start webhook server
-		if err := ws.Server.ListenAndServeTLS(config.WebhookCertDir, config.WebhookKeyDir); err != nil && err != http.ErrServerClosed {
-			logger.Fatalf("Webhook server: %s\n", err)
+		cancelTLS := false
+		if config.WebhookCertDir == "" {
+			cancelTLS = true
+			logger.Warnln("Webhook's Cert Dir is not defined")
+		}
+		if config.WebhookSecretKey == "" {
+			cancelTLS = true
+			logger.Warnln("Webhook's Secret Key is not defined")
+		}
+
+		if cancelTLS {
+			logger.Warnln("Running Webhook without TLS")
+			if err := ws.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				logger.Fatalf("Webhook server: %s\n", err)
+			}
+		} else {
+			// Start webhook server
+			if err := ws.Server.ListenAndServeTLS(config.WebhookCertDir, config.WebhookKeyDir); err != nil && err != http.ErrServerClosed {
+				logger.Fatalf("Webhook server: %s\n", err)
+			}
 		}
 	}()
 
-	gracefully(gs.Server)
+	gracefully(
+		gs.Server,
+		ws.Server,
+	)
 }

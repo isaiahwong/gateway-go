@@ -21,6 +21,7 @@ import (
 
 // GatewayServer encapsulates GatewayServer and Observer
 type GatewayServer struct {
+	Name     string
 	Server   *http.Server
 	services map[string]*k8s.APIService
 	opts     *gatewayOptions
@@ -305,6 +306,7 @@ func NewGatewayServer(port string, opt ...GatewayOption) (*GatewayServer, error)
 		opts:     &opts,
 		services: map[string]*k8s.APIService{},
 		Server:   s,
+		Name:     "Gateway Server",
 	}
 	// Initialize K8SClient if nil
 	if opts.k8sClient != nil {

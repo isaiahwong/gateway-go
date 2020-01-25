@@ -35,6 +35,7 @@ func (en *AdmissionNotifier) Notify(e observer.Event) {
 
 // WebhookServer encapsulates Webhookserver and Notifier
 type WebhookServer struct {
+	Name     string
 	Server   *http.Server
 	Notifier *AdmissionNotifier
 }
@@ -85,6 +86,7 @@ func NewWebhook(port string) (*WebhookServer, error) {
 		Handler: r,
 	}
 	ws := &WebhookServer{
+		Name:     "Admission Webhook Server",
 		Server:   s,
 		Notifier: an,
 	}
