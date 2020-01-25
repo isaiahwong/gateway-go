@@ -71,19 +71,25 @@ func gatewayMiddleware(gw *gwruntime.ServeMux) func(*gin.Engine) {
 	}
 }
 
-func httpMiddleware(r *gin.Engine) {
-	r.Use(gin.Recovery())
-	// Health route
-	r.GET("/hz", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status": "success",
+func essentialMiddleware(gs *GatewayServer) func(*gin.Engine) {
+	return func(r *gin.Engine) {
+		r.Use(gin.Recovery())
+		r.Use(requestLogger(gs.opts.logger))
+		r.Use(authMW(&gs.services))
+		// Health route
+		r.GET("/hz", func(c *gin.Context) {
+			c.JSON(200, gin.H{
+				"status": "success",
+			})
 		})
-	})
-	r.NoRoute(notFoundMW)
+		r.NoRoute(notFoundMW)
+	}
 }
 
 func newGrpcMux(ctx context.Context, opts []gwruntime.ServeMuxOption) *gwruntime.ServeMux {
+	gwruntime.HTTPError = CustomHTTPError
 	mux := gwruntime.NewServeMux(opts...)
+	// TODO: Custom error handler, etc 404
 	return mux
 }
 
@@ -123,7 +129,7 @@ func applyHTTP(r *gin.Engine, path string) error {
 		return InvalidParams("applyHttp: path is empty")
 	}
 	// TODO: Test connectivity
-	rp := reverseProxy(path)
+	rp := reverseProxyMW(path)
 	// Routes GET root path
 	r.GET(path, rp)
 	// Routes all requests to service
@@ -165,6 +171,9 @@ func applyGrpc(mux *gwruntime.ServeMux, r *gin.Engine, serviceName string, conn 
 		}
 	}
 	svc.Handler(context.Background(), mux, conn)
+	r.GET(path, func(c *gin.Context) {
+		mux.ServeHTTP(c.Writer, c.Request)
+	})
 	r.Any(path+"/*any", func(c *gin.Context) {
 		mux.ServeHTTP(c.Writer, c.Request)
 	})
@@ -176,7 +185,7 @@ func applyGrpc(mux *gwruntime.ServeMux, r *gin.Engine, serviceName string, conn 
 func (gs *GatewayServer) applyRoutes() {
 	// Create new Router
 	r, err := newRouter(
-		httpMiddleware,
+		essentialMiddleware(gs),
 		// gatewayMiddleware(gs.gw),
 	)
 	if err != nil {
@@ -197,17 +206,18 @@ func (gs *GatewayServer) applyRoutes() {
 			return
 		}
 		// Iterate exposed ports of services
+		// Test if routes is working
 		for _, port := range svc.Ports {
 			switch port.Name {
 			case "http":
 				path := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
-				path = fmt.Sprintf("http://%v:%v%v", svc.DNSPath, port, path)
+				path = fmt.Sprintf("http://%v:%v%v", svc.DNSPath, port.Port, path)
 				err := applyHTTP(r, path)
 				if err != nil {
 					gs.opts.logger.Error(err)
 				}
 			case "grpc":
-				target := fmt.Sprintf("%v:%v", svc.DNSPath, port)
+				target := fmt.Sprintf("%v:%v", svc.DNSPath, port.Port)
 				path := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
 				err := applyGrpc(mux, r, svc.ServiceName, svc.GRPCClientConn, target, path)
 				if err != nil {

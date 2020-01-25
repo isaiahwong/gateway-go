@@ -121,7 +121,6 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: api-gateway
-  namespace: default
 subjects:
   - kind: ServiceAccount
     name: api-gateway

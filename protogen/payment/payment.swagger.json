@@ -150,6 +150,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/paymentRetrievePaymentRequest"
+            }
+          }
+        ],
         "tags": [
           "PaymentService"
         ]
@@ -953,6 +963,14 @@
         "success": {
           "type": "boolean",
           "format": "boolean"
+        }
+      }
+    },
+    "paymentRetrievePaymentRequest": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "string"
         }
       }
     },

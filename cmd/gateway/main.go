@@ -106,20 +106,13 @@ func gracefully(s *http.Server) {
 	// kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	logger.Println("Shutdown Servers ...")
+	logger.Println("Shutdown Servers")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	ctx := context.Background()
 
 	if err := s.Shutdown(ctx); err != nil {
-		logger.Fatal("Server Shutdown:", err)
+		logger.Fatal("Error Shutting Down :", err)
 	}
-	// catching ctx.Done(). timeout of 5 seconds.
-	select {
-	case <-ctx.Done():
-		logger.Println("timeout of 5 seconds.")
-	}
-	logger.Println("Server exiting")
 }
 
 // Execute the entry point for gateway
