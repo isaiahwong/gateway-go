@@ -122,7 +122,7 @@ func (gs *GatewayServer) updateServices(service *k8s.APIService) {
 	gs.services[service.DNSPath] = service
 }
 
-func applyHTTP(r *gin.Engine, path string) error {
+func applyHTTP(r *gin.Engine, path string, route string) error {
 	if r == nil {
 		return InvalidParams("applyHttp: gin r router is nil")
 	}
@@ -131,10 +131,8 @@ func applyHTTP(r *gin.Engine, path string) error {
 	}
 	// TODO: Test connectivity
 	rp := reverseProxyMW(path)
-	// Routes GET root path
-	r.GET(path, rp)
-	// Routes all requests to service
-	r.Any(fmt.Sprintf("%v/*any", path), rp)
+	// // Routes all requests to service
+	r.Any(fmt.Sprintf("%v/*any", route), rp)
 	return nil
 }
 
@@ -172,12 +170,12 @@ func applyGrpc(mux *gwruntime.ServeMux, r *gin.Engine, serviceName string, conn 
 		}
 	}
 	svc.Handler(context.Background(), mux, conn)
-	r.GET(path, func(c *gin.Context) {
+	handler := func(c *gin.Context) {
 		mux.ServeHTTP(c.Writer, c.Request)
-	})
-	r.Any(path+"/*any", func(c *gin.Context) {
-		mux.ServeHTTP(c.Writer, c.Request)
-	})
+	}
+	r.GET(path, handler)
+	r.POST(path, handler)
+	r.Any(fmt.Sprintf("%v/*any", path), handler)
 	return nil
 }
 
@@ -193,36 +191,35 @@ func (gs *GatewayServer) applyRoutes() {
 		gs.opts.logger.Errorf("applyRoutes: %v", err)
 	}
 	// Check if services is empty
-	if len(gs.services) <= 0 {
-		return
-	}
-	mux := newGrpcMux(context.Background(), nil)
-	// Iterate services mapping them to gin router
-	for _, svc := range gs.services {
-		validate := validator.Instance()
-		// Ensures required fields are populated
-		err := validate.Struct(svc)
-		if err != nil {
-			gs.opts.logger.Error(err)
-			return
-		}
-		// Iterate exposed ports of services
-		// Test if routes is working
-		for _, port := range svc.Ports {
-			switch port.Name {
-			case "http":
-				path := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
-				path = fmt.Sprintf("http://%v:%v%v", svc.DNSPath, port.Port, path)
-				err := applyHTTP(r, path)
-				if err != nil {
-					gs.opts.logger.Error(err)
-				}
-			case "grpc":
-				target := fmt.Sprintf("%v:%v", svc.DNSPath, port.Port)
-				path := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
-				err := applyGrpc(mux, r, svc.ServiceName, svc.GRPCClientConn, target, path)
-				if err != nil {
-					gs.opts.logger.Error(err)
+	if len(gs.services) > 0 {
+		mux := newGrpcMux(context.Background(), nil)
+		// Iterate services mapping them to gin router
+		for _, svc := range gs.services {
+			validate := validator.Instance()
+			// Ensures required fields are populated
+			err := validate.Struct(svc)
+			if err != nil {
+				gs.opts.logger.Error(err)
+				return
+			}
+			// Iterate exposed ports of services
+			// Test if routes is working
+			for _, port := range svc.Ports {
+				switch port.Name {
+				case "http":
+					route := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
+					path := fmt.Sprintf("http://%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
+					err := applyHTTP(r, path, route)
+					if err != nil {
+						gs.opts.logger.Error(err)
+					}
+				case "grpc":
+					target := fmt.Sprintf("%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
+					path := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
+					err := applyGrpc(mux, r, svc.ServiceName, svc.GRPCClientConn, target, path)
+					if err != nil {
+						gs.opts.logger.Error(err)
+					}
 				}
 			}
 		}
@@ -237,12 +234,12 @@ func (gs *GatewayServer) fetchAllServices() error {
 	// Get K8S Services in cluster
 	svcs, err := gs.opts.k8sClient.GetServices("default")
 	if err != nil {
-		return err
+		return fmt.Errorf("fetchAllServices: GetServices: ", err)
 	}
 	for _, d := range svcs {
 		o, err := gs.opts.k8sClient.CoreAPI().Admission().UnmarshalK8SObject(d)
 		if err != nil {
-			return err
+			return fmt.Errorf("fetchAllServices: ", err)
 		}
 		// Filter admission request if incoming request does not have api-service labeled.
 		if strings.ToLower(o.Metadata.Labels.ResourceType) != string(enum.LabelAPIService) {
@@ -250,7 +247,7 @@ func (gs *GatewayServer) fetchAllServices() error {
 		}
 		s, err := gs.opts.k8sClient.CoreAPI().APIServices().ObjectToAPI(o)
 		if err != nil {
-			return err
+			return fmt.Errorf("fetchAllServices: ", err)
 		}
 		gs.updateServices(s)
 	}

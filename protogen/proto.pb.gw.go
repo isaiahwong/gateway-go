@@ -21,14 +21,14 @@ type ServiceDesc struct {
 var _Services = map[string]ServiceDesc{
 	"api.auth.AuthService": ServiceDesc{
 		ServiceName: "AuthService",
-		PackageSVC: "api.auth.AuthService ",
+		PackageSVC: "api.auth.AuthService",
 		Package:        "api.auth",
 		CurrentPackage: "auth",
 		Handler: auth.RegisterAuthServiceHandler,
 	},
 	"api.payment.PaymentService": ServiceDesc{
 		ServiceName: "PaymentService",
-		PackageSVC: "api.payment.PaymentService ",
+		PackageSVC: "api.payment.PaymentService",
 		Package:        "api.payment",
 		CurrentPackage: "payment",
 		Handler: payment.RegisterPaymentServiceHandler,

@@ -25,7 +25,7 @@ var _Services = map[string]ServiceDesc{
 	{{- range $i, $e := .}}
 	"{{ $e.Package }}.{{ $e.ServiceName}}": ServiceDesc{
 		ServiceName: "{{ $e.ServiceName }}",
-		PackageSVC: "{{ $e.PackageSVC }} ",
+		PackageSVC: "{{ $e.PackageSVC }}",
 		Package:        "{{ $e.Package }}",
 		CurrentPackage: "{{ $e.CurrentPackage }}",
 		Handler: {{ $e.CurrentPackage }}.Register{{ $e.ServiceName }}Handler,

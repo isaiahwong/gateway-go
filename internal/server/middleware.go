@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http/httputil"
-	"net/url"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/isaiahwong/gateway-go/internal/k8s"
@@ -22,10 +21,27 @@ func notFoundMW(c *gin.Context) {
 }
 
 func reverseProxyMW(target string) gin.HandlerFunc {
-	url, _ := url.Parse(target)
-	proxy := httputil.NewSingleHostReverseProxy(url)
+	// url, _ := url.Parse(target)
+	// proxy := httputil.NewSingleHostReverseProxy(url)
+	// TODO: REWRITE ENTIRE REVERSE PROXY
 	return func(c *gin.Context) {
-		proxy.ServeHTTP(c.Writer, c.Request)
+		fmt.Println(target + c.Request.URL.Path)
+		req, err := http.NewRequest("POST", target+c.Request.URL.Path, nil)
+		req.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+		fmt.Println("response Status:", resp.Status)
+		// proxy.ServeHTTP(c.Writer, c.Request)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println(err)
+		}
+		bodyString := string(bodyBytes)
+		c.JSON(200, bodyString)
 	}
 }
 

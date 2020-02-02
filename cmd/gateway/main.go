@@ -145,22 +145,23 @@ func main() {
 	// Registers gateway as an observer
 	ws.Notifier.Register(gs)
 
+	// Start gateway Server
 	go func() {
-		// Start gateway Server
 		if err := gs.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Fatalf("Gateway Server: %s\n", err)
 		}
 	}()
 
+	// Start Webhook server
 	go func() {
 		cancelTLS := false
 		if config.WebhookCertDir == "" {
 			cancelTLS = true
 			logger.Warnln("Webhook's Cert Dir is not defined")
 		}
-		if config.WebhookSecretKey == "" {
+		if config.WebhookKeyDir == "" {
 			cancelTLS = true
-			logger.Warnln("Webhook's Secret Key is not defined")
+			logger.Warnln("Webhook's Key is not defined")
 		}
 
 		if cancelTLS {
@@ -176,6 +177,7 @@ func main() {
 		}
 	}()
 
+	// Kills server
 	gracefully(
 		gs.Server,
 		ws.Server,
