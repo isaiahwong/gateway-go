@@ -62,16 +62,6 @@ func (gs *GatewayServer) OnNotify(e observer.Event) {
 	gs.directAdmission(e.Data)
 }
 
-func gatewayMiddleware(gw *gwruntime.ServeMux) func(*gin.Engine) {
-	return func(r *gin.Engine) {
-		if gw == nil {
-			return
-		}
-		// Proxies to gateway services
-		r.Any("/v1/*any", gin.WrapF(gw.ServeHTTP))
-	}
-}
-
 func essentialMiddleware(gs *GatewayServer) func(*gin.Engine) {
 	return func(r *gin.Engine) {
 		r.Use(gin.Recovery())
@@ -87,9 +77,10 @@ func essentialMiddleware(gs *GatewayServer) func(*gin.Engine) {
 	}
 }
 
-func newGrpcMux(ctx context.Context, opts []gwruntime.ServeMuxOption) *gwruntime.ServeMux {
-	gwruntime.HTTPError = CustomHTTPError
-	mux := gwruntime.NewServeMux(opts...)
+func newGrpcMux(ctx context.Context) *gwruntime.ServeMux {
+	gwruntime.HTTPError = HTTPError
+	gwruntime.OtherErrorHandler = OtherErrorHandler
+	mux := gwruntime.NewServeMux()
 	// TODO: Custom error handler, etc 404
 	return mux
 }
@@ -105,23 +96,6 @@ func newRouter(attachMiddleware ...func(r *gin.Engine)) (*gin.Engine, error) {
 	return r, nil
 }
 
-// updateServices updates gateway services
-func (gs *GatewayServer) updateServices(service *k8s.APIService) {
-	if service == nil {
-		gs.opts.logger.Error("updateServices: service is nil")
-		return
-	}
-	if service.DNSPath == "" {
-		gs.opts.logger.Error("updateServices: service.DNSPath is empty")
-		return
-	}
-	// Create map if services is not assigned
-	if gs.services == nil {
-		gs.services = map[string]*k8s.APIService{}
-	}
-	gs.services[service.DNSPath] = service
-}
-
 func applyHTTP(r *gin.Engine, path string, route string) error {
 	if r == nil {
 		return InvalidParams("applyHttp: gin r router is nil")
@@ -130,13 +104,15 @@ func applyHTTP(r *gin.Engine, path string, route string) error {
 		return InvalidParams("applyHttp: path is empty")
 	}
 	// TODO: Test connectivity
-	rp := reverseProxyMW(path)
-	// // Routes all requests to service
+	rp := ReverseProxy(path)
+	// Routes all requests to service
+	r.GET(route, rp)
+	r.POST(route, rp)
 	r.Any(fmt.Sprintf("%v/*any", route), rp)
 	return nil
 }
 
-func applyGrpc(mux *gwruntime.ServeMux, r *gin.Engine, serviceName string, conn *grpc.ClientConn, target string, path string) error {
+func applyGrpc(mux *gwruntime.ServeMux, r *gin.Engine, serviceName string, conn *grpc.ClientConn, target string, route string) error {
 	var err error
 	var svc *protogen.ServiceDesc
 	if r == nil {
@@ -163,7 +139,7 @@ func applyGrpc(mux *gwruntime.ServeMux, r *gin.Engine, serviceName string, conn 
 	}
 	// Create connection
 	if conn == nil {
-		// TODO: TLS Configuration
+		// TLS will be handled by sidecar proxy. I.E. Istio's Sidecar
 		conn, err = grpc.DialContext(context.Background(), target, grpc.WithInsecure())
 		if err != nil {
 			return nil
@@ -173,9 +149,9 @@ func applyGrpc(mux *gwruntime.ServeMux, r *gin.Engine, serviceName string, conn 
 	handler := func(c *gin.Context) {
 		mux.ServeHTTP(c.Writer, c.Request)
 	}
-	r.GET(path, handler)
-	r.POST(path, handler)
-	r.Any(fmt.Sprintf("%v/*any", path), handler)
+	r.GET(route, handler)
+	r.POST(route, handler)
+	r.Any(fmt.Sprintf("%v/*any", route), handler)
 	return nil
 }
 
@@ -185,41 +161,38 @@ func (gs *GatewayServer) applyRoutes() {
 	// Create new Router
 	r, err := newRouter(
 		essentialMiddleware(gs),
-		// gatewayMiddleware(gs.gw),
 	)
 	if err != nil {
 		gs.opts.logger.Errorf("applyRoutes: %v", err)
 	}
-	// Check if services is empty
-	if len(gs.services) > 0 {
-		mux := newGrpcMux(context.Background(), nil)
-		// Iterate services mapping them to gin router
-		for _, svc := range gs.services {
-			validate := validator.Instance()
-			// Ensures required fields are populated
-			err := validate.Struct(svc)
-			if err != nil {
-				gs.opts.logger.Error(err)
-				return
-			}
-			// Iterate exposed ports of services
-			// Test if routes is working
-			for _, port := range svc.Ports {
-				switch port.Name {
-				case "http":
-					route := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
-					path := fmt.Sprintf("http://%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
-					err := applyHTTP(r, path, route)
-					if err != nil {
-						gs.opts.logger.Error(err)
-					}
-				case "grpc":
-					target := fmt.Sprintf("%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
-					path := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
-					err := applyGrpc(mux, r, svc.ServiceName, svc.GRPCClientConn, target, path)
-					if err != nil {
-						gs.opts.logger.Error(err)
-					}
+	mux := newGrpcMux(context.Background())
+
+	// Iterate services mapping them to gin router
+	for _, svc := range gs.services {
+		validate := validator.Instance()
+		// Ensures required fields are populated
+		err := validate.Struct(svc)
+		if err != nil {
+			gs.opts.logger.Error(err)
+			return
+		}
+		// Iterate exposed ports of services
+		// Test if routes is working
+		for _, port := range svc.Ports {
+			switch port.Name {
+			case "http":
+				route := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
+				path := fmt.Sprintf("%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
+				err := applyHTTP(r, path, route)
+				if err != nil {
+					gs.opts.logger.Error(err)
+				}
+			case "grpc":
+				target := fmt.Sprintf("%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
+				path := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
+				err := applyGrpc(mux, r, svc.ServiceName, svc.GRPCClientConn, target, path)
+				if err != nil {
+					gs.opts.logger.Error(err)
 				}
 			}
 		}
@@ -227,6 +200,39 @@ func (gs *GatewayServer) applyRoutes() {
 
 	// Apply routes to server handler
 	gs.Server.Handler = r
+}
+
+// updateServices updates gateway services
+func (gs *GatewayServer) updateServices(service *k8s.APIService) {
+	if service == nil {
+		gs.opts.logger.Error("updateServices: service is nil")
+		return
+	}
+	if service.DNSPath == "" {
+		gs.opts.logger.Error("updateServices: service.DNSPath is empty")
+		return
+	}
+	// Create map if services is not assigned
+	if gs.services == nil {
+		gs.services = map[string]*k8s.APIService{}
+	}
+	gs.services[service.DNSPath] = service
+}
+
+func (gs *GatewayServer) deleteServices(service *k8s.APIService) {
+	if service == nil {
+		gs.opts.logger.Error("deleteServices: service is nil")
+		return
+	}
+	if service.DNSPath == "" {
+		gs.opts.logger.Error("deleteServices: service.DNSPath is empty")
+		return
+	}
+	// Create map if services is not assigned
+	if gs.services == nil {
+		return
+	}
+	delete(gs.services, service.DNSPath)
 }
 
 // fetchAllServices fetches all services from cluster
@@ -254,6 +260,25 @@ func (gs *GatewayServer) fetchAllServices() error {
 	return nil
 }
 
+// create adds apiservices to gatway services
+func (gs *GatewayServer) create(ar *k8s.AdmissionRegistration) {
+	s, err := gs.opts.k8sClient.CoreAPI().APIServices().ObjectToAPI(&ar.Request.Object)
+	if err != nil {
+		gs.opts.logger.Error(err)
+	}
+	gs.updateServices(s)
+	gs.applyRoutes()
+}
+
+func (gs *GatewayServer) delete(ar *k8s.AdmissionRegistration) {
+	s, err := gs.opts.k8sClient.CoreAPI().APIServices().ObjectToAPI(&ar.Request.OldObject)
+	if err != nil {
+		gs.opts.logger.Error(err)
+	}
+	gs.deleteServices(s)
+	gs.applyRoutes()
+}
+
 // directAdmission streamlines a series operations
 // such as parsing AdmissionRequest, filtering
 // and routing to its necessary
@@ -269,23 +294,18 @@ func (gs *GatewayServer) directAdmission(d []byte) {
 		return
 	}
 	// Filter admission request if incoming request does not have api-service labeled.
-	if strings.ToLower(ar.Request.Object.Metadata.Labels.ResourceType) != string(enum.LabelAPIService) {
+	if strings.ToLower(ar.Request.OldObject.Metadata.Labels.ResourceType) != string(enum.LabelAPIService) &&
+		strings.ToLower(ar.Request.Object.Metadata.Labels.ResourceType) != string(enum.LabelAPIService) {
 		return
 	}
+	fmt.Println(ar.Request.Operation, ar)
 	switch ar.Request.Operation {
 	case string(enum.Create):
 		gs.create(ar)
+	case string(enum.Delete):
+		gs.delete(ar)
 	}
-}
-
-// create adds apiservices to gatway services
-func (gs *GatewayServer) create(ar *k8s.AdmissionRegistration) {
-	s, err := gs.opts.k8sClient.CoreAPI().APIServices().ObjectToAPI(&ar.Request.Object)
-	if err != nil {
-		gs.opts.logger.Error(err)
-	}
-	gs.updateServices(s)
-	gs.applyRoutes()
+	fmt.Println(len(gs.services))
 }
 
 // NewGatewayServer returns a new gin server
@@ -312,6 +332,8 @@ func NewGatewayServer(port string, opt ...GatewayOption) (*GatewayServer, error)
 			return nil, err
 		}
 	}
-	gs.applyRoutes()
+	if len(gs.services) > 0 {
+		gs.applyRoutes()
+	}
 	return gs, nil
 }

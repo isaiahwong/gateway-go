@@ -1,7 +1,7 @@
 #!/bin/bash
 # TODO: Update CN with dynamic properties
 
-basedir="$(dirname "$0")/manifest"
+basedir="$(dirname "$0")/k8s"
 keydir="$(dirname "$0")/webhook-cert"
 out="gateway.yaml"
 

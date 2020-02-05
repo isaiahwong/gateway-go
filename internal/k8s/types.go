@@ -72,7 +72,8 @@ type AdmissionRequest struct {
 	Kind      Kind      `json:"kind" validate:"required"`
 	Name      string    `json:"name"`
 	Namespace string    `json:"namespace"`
-	Object    K8SObject `json:"object" validate:"required"`
+	Object    K8SObject `json:"object"`
+	OldObject K8SObject `json:"oldObject"`
 }
 
 // AdmissionRegistration represents k8s admissionregistration.k8s.io/v1

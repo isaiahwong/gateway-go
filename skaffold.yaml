@@ -10,5 +10,5 @@ build:
 deploy:
   kubectl:
     manifests:
-    - manifest/gateway.yaml
+    - k8s/gateway.yaml
     # - manifest/ingress.yaml

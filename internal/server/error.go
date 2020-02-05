@@ -8,8 +8,6 @@ import (
 	"github.com/golang/protobuf/ptypes/any"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/grpclog"
 )
 
 type invalidParams struct {
@@ -36,71 +34,52 @@ func NotFound(msg string) *notFound {
 	return &notFound{"Not Found: " + msg}
 }
 
+type errors struct {
+	Param   string `json:"param"`
+	Message string `json:"message"`
+	Value   string `json:"value"`
+}
+
 type errorBody struct {
 	Error string `protobuf:"bytes,100,name=error" json:"error"`
 	// This is to make the error more compatible with users that expect errors to be Status objects:
 	// https://github.com/grpc/grpc/blob/master/src/proto/grpc/status/status.proto
 	// It should be the exact same message as the Error field.
-	Code    int32      `protobuf:"varint,1,name=code" json:"code"`
 	Message string     `protobuf:"bytes,2,name=message" json:"message"`
 	Details []*any.Any `protobuf:"bytes,3,rep,name=details" json:"details,omitempty"`
+	Errors  []errors   `json:"errors"`
 }
 
-// HTTPStatusFromCode converts a gRPC error code into the corresponding HTTP response status.
-// See: https://github.com/googleapis/googleapis/blob/master/google/rpc/code.proto
-func HTTPStatusFromCode(code codes.Code) int {
-	switch code {
-	case codes.OK:
-		return http.StatusOK
-	case codes.Canceled:
-		return http.StatusRequestTimeout
-	case codes.Unknown:
-		return http.StatusInternalServerError
-	case codes.InvalidArgument:
-		return http.StatusBadRequest
-	case codes.DeadlineExceeded:
-		return http.StatusGatewayTimeout
-	case codes.NotFound:
-		return http.StatusNotFound
-	case codes.AlreadyExists:
-		return http.StatusConflict
-	case codes.PermissionDenied:
-		return http.StatusForbidden
-	case codes.Unauthenticated:
-		return http.StatusUnauthorized
-	case codes.ResourceExhausted:
-		return http.StatusTooManyRequests
-	case codes.FailedPrecondition:
-		// Note, this deliberately doesn't translate to the similarly named '412 Precondition Failed' HTTP response status.
-		return http.StatusBadRequest
-	case codes.Aborted:
-		return http.StatusConflict
-	case codes.OutOfRange:
-		return http.StatusBadRequest
-	case codes.Unimplemented:
-		return http.StatusNotImplemented
-	case codes.Internal:
-		return http.StatusInternalServerError
-	case codes.Unavailable:
-		return http.StatusServiceUnavailable
-	case codes.DataLoss:
-		return http.StatusInternalServerError
-	}
-
-	grpclog.Infof("Unknown gRPC error code: %v", code)
-	return http.StatusInternalServerError
-}
-
-func CustomHTTPError(ctx context.Context, _ *gwruntime.ServeMux, marshaler gwruntime.Marshaler, w http.ResponseWriter, _ *http.Request, err error) {
+// HTTPError replies to the request with the error.
+// Overrides runtime.error HTTPError
+func HTTPError(ctx context.Context, _ *gwruntime.ServeMux, marshaler gwruntime.Marshaler, w http.ResponseWriter, _ *http.Request, err error) {
 	const fallback = `{"error": "failed to marshal error message"}`
-
+	code := gwruntime.HTTPStatusFromCode(grpc.Code(err))
 	w.Header().Set("Content-type", marshaler.ContentType())
-	w.WriteHeader(gwruntime.HTTPStatusFromCode(grpc.Code(err)))
-	jErr := json.NewEncoder(w).Encode(errorBody{
+	w.WriteHeader(code)
+
+	eb := errorBody{
 		Error: grpc.ErrorDesc(err),
-	})
+	}
+	md, ok := gwruntime.ServerMetadataFromContext(ctx)
+	if ok {
+		details := md.TrailerMD.Get("errors-bin")[0]
+		// Maps json values to error body
+		json.Unmarshal([]byte(details), &eb)
+	}
+	jErr := json.NewEncoder(w).Encode(eb)
 
 	if jErr != nil {
 		w.Write([]byte(fallback))
 	}
+}
+
+// OtherErrorHandler handles the following error used by the gateway: StatusMethodNotAllowed StatusNotFound and StatusBadRequest
+// Overrides runtime.error OtherErrorHandler
+func OtherErrorHandler(w http.ResponseWriter, _ *http.Request, msg string, code int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(errorBody{
+		Error: msg,
+	})
 }

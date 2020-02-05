@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/isaiahwong/gateway-go/internal/k8s"
@@ -42,6 +43,19 @@ func reverseProxyMW(target string) gin.HandlerFunc {
 		}
 		bodyString := string(bodyBytes)
 		c.JSON(200, bodyString)
+	}
+}
+
+func ReverseProxy(target string) gin.HandlerFunc {
+	director := func(req *http.Request) {
+		req.URL.Scheme = "http"
+		req.URL.Host = target
+	}
+	proxy := &httputil.ReverseProxy{Director: director}
+	return func(c *gin.Context) {
+
+		c.Request.Host = target
+		proxy.ServeHTTP(c.Writer, c.Request)
 	}
 }
 
