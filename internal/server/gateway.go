@@ -174,7 +174,7 @@ func (gs *GatewayServer) applyRoutes() {
 		err := validate.Struct(svc)
 		if err != nil {
 			gs.opts.logger.Error(err)
-			return
+			continue
 		}
 		// Iterate exposed ports of services
 		// Test if routes is working
@@ -197,7 +197,7 @@ func (gs *GatewayServer) applyRoutes() {
 			}
 		}
 	}
-
+	fmt.Println("applied")
 	// Apply routes to server handler
 	gs.Server.Handler = r
 }
@@ -240,12 +240,12 @@ func (gs *GatewayServer) fetchAllServices() error {
 	// Get K8S Services in cluster
 	svcs, err := gs.opts.k8sClient.GetServices("default")
 	if err != nil {
-		return fmt.Errorf("fetchAllServices: GetServices: ", err)
+		return fmt.Errorf("fetchAllServices: GetServices: %v", err)
 	}
 	for _, d := range svcs {
 		o, err := gs.opts.k8sClient.CoreAPI().Admission().UnmarshalK8SObject(d)
 		if err != nil {
-			return fmt.Errorf("fetchAllServices: ", err)
+			return fmt.Errorf("fetchAllServices: %v", err)
 		}
 		// Filter admission request if incoming request does not have api-service labeled.
 		if strings.ToLower(o.Metadata.Labels.ResourceType) != string(enum.LabelAPIService) {
@@ -253,15 +253,15 @@ func (gs *GatewayServer) fetchAllServices() error {
 		}
 		s, err := gs.opts.k8sClient.CoreAPI().APIServices().ObjectToAPI(o)
 		if err != nil {
-			return fmt.Errorf("fetchAllServices: ", err)
+			return fmt.Errorf("fetchAllServices: %v", err)
 		}
 		gs.updateServices(s)
 	}
 	return nil
 }
 
-// create adds apiservices to gatway services
-func (gs *GatewayServer) create(ar *k8s.AdmissionRegistration) {
+// apply updates apiservices to gatway services
+func (gs *GatewayServer) apply(ar *k8s.AdmissionRegistration) {
 	s, err := gs.opts.k8sClient.CoreAPI().APIServices().ObjectToAPI(&ar.Request.Object)
 	if err != nil {
 		gs.opts.logger.Error(err)
@@ -288,6 +288,7 @@ func (gs *GatewayServer) directAdmission(d []byte) {
 		gs.opts.logger.Error(err)
 		return
 	}
+	fmt.Println(ar)
 	// Filter admission request if incoming request is not of K8S Service Object.
 	if strings.ToLower(ar.Request.Kind.Kind) != string(enum.K8SServiceObject) {
 		gs.opts.logger.Printf("Admission request %v is not service")
@@ -298,10 +299,9 @@ func (gs *GatewayServer) directAdmission(d []byte) {
 		strings.ToLower(ar.Request.Object.Metadata.Labels.ResourceType) != string(enum.LabelAPIService) {
 		return
 	}
-	fmt.Println(ar.Request.Operation, ar)
 	switch ar.Request.Operation {
 	case string(enum.Create):
-		gs.create(ar)
+		gs.apply(ar)
 	case string(enum.Delete):
 		gs.delete(ar)
 	}
@@ -332,8 +332,6 @@ func NewGatewayServer(port string, opt ...GatewayOption) (*GatewayServer, error)
 			return nil, err
 		}
 	}
-	if len(gs.services) > 0 {
-		gs.applyRoutes()
-	}
+	gs.applyRoutes()
 	return gs, nil
 }
