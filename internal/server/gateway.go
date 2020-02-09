@@ -288,7 +288,6 @@ func (gs *GatewayServer) directAdmission(d []byte) {
 		gs.opts.logger.Error(err)
 		return
 	}
-	fmt.Println(ar)
 	// Filter admission request if incoming request is not of K8S Service Object.
 	if strings.ToLower(ar.Request.Kind.Kind) != string(enum.K8SServiceObject) {
 		gs.opts.logger.Printf("Admission request %v is not service")
@@ -301,11 +300,12 @@ func (gs *GatewayServer) directAdmission(d []byte) {
 	}
 	switch ar.Request.Operation {
 	case string(enum.Create):
+		fallthrough
+	case string(enum.Update):
 		gs.apply(ar)
 	case string(enum.Delete):
 		gs.delete(ar)
 	}
-	fmt.Println(len(gs.services))
 }
 
 // NewGatewayServer returns a new gin server

@@ -52,6 +52,7 @@ func NewClient() (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	c.coreAPI, err = newCoreApi()
 	return &c, nil
 }

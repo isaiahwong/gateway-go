@@ -43,7 +43,7 @@ type WebhookServer struct {
 func webhookMiddleware(an *AdmissionNotifier) func(*gin.Engine) {
 	return func(r *gin.Engine) {
 		r.Use(gin.Recovery())
-		r.POST("/webhook", func(c *gin.Context) {
+		r.POST("/admission", func(c *gin.Context) {
 			if c.Request.Body == nil {
 				c.JSON(200, gin.H{
 					"success": true,

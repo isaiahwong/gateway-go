@@ -17,6 +17,7 @@ require (
 	google.golang.org/grpc v1.25.1
 	gopkg.in/go-playground/validator.v9 v9.30.2 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
+	k8s.io/api v0.0.0-20191121015604-11707872ac1c
 	k8s.io/apimachinery v0.0.0-20191123013113-aee2c0efe032
 	k8s.io/client-go v0.0.0-20191123055820-8d0e6f1b7b78
 )

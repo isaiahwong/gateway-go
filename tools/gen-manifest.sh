@@ -1,8 +1,9 @@
 #!/bin/bash
 set -e
 
-basedir="$(dirname "$0")/../k8s"
-keydir="$(dirname "$0")/webhook-cert"
+dir="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+basedir="$dir/../k8s"
+keydir="$dir/webhook-cert"
 
 check_root() {
   local root_secret
@@ -49,17 +50,6 @@ Current time is
 EOF
 }
 
-[ -z ${service} ] && service=gateway-service
-[ -z ${namespace} ] && namespace=default
-[ -z ${nginx} ] && release=false
-[ -z ${release} ] && release=production
-[ -z ${out} ] && out=gateway.yaml
-
-if [ ! -x "$(command -v openssl)" ]; then
-    echo "openssl not found"
-    exit 1
-fi
-
 generate_keys() {
   # Generate keys into a temporary directory.
   echo "Generating TLS keys ..."
@@ -72,36 +62,7 @@ generate_keys() {
       | openssl x509 -req -CA ca.crt -CAkey ca.key -CAcreateserial -out webhook-server-tls.crt
 }
 
-init() {
-  while [[ $# -gt 0 ]]; do
-  case ${1} in
-    --service)
-        service="$2"
-        shift
-        ;;
-    --namespace)
-        namespace="$2"
-        shift
-        ;;
-    --release)
-        namespace="$2"
-        shift
-        ;;
-    --nginx)
-        namespace="$2"
-        shift
-        ;;
-    --out)
-        namespace="$2"
-        shift
-        ;;
-    *)
-        usage
-        ;;
-    esac
-    shift
-  done
-
+gen_cert() {
   # Create manifest file
   cp $basedir/template.yaml $basedir/$out
   if [[ release == "production" ]]
@@ -125,11 +86,11 @@ init() {
 
   generate_keys
 
-  cd ..
+  ca_pem_b64="$(openssl base64 -A <"ca.crt")"
+  tls_crt="$(cat webhook-server-tls.crt | base64)"
+  tls_key="$(cat webhook-server-tls.key | base64)"
 
-  ca_pem_b64="$(openssl base64 -A <"${keydir}/ca.crt")"
-  tls_crt="$(cat ${keydir}/webhook-server-tls.crt | base64)"
-  tls_key="$(cat ${keydir}/webhook-server-tls.key | base64)"
+  cd ..
 
   # Replaces the respective values crt, key and caBundle in output file
   find $basedir -name $out \
@@ -152,7 +113,43 @@ case $1 in
     ;;
 
   gen-cert)
-    init
+  while [[ $# -gt 0 ]]; do
+    case ${1} in
+      --service)
+          service="$2"
+          shift
+          ;;
+      --namespace)
+          namespace="$2"
+          shift
+          ;;
+      --release)
+          namespace="$2"
+          shift
+          ;;
+      --nginx)
+          namespace="$2"
+          shift
+          ;;
+      --out)
+          out="$2"
+          shift
+          ;;
+      *)
+      esac
+      shift
+    done
+    [ -z ${service} ] && service=gateway-service
+    [ -z ${namespace} ] && namespace=default
+    [ -z ${nginx} ] && release=false
+    [ -z ${release} ] && release=production
+    [ -z ${out} ] && out=gateway.yaml
+
+    if [ ! -x "$(command -v openssl)" ]; then
+        echo "openssl not found"
+        exit 1
+    fi
+    gen_cert
     ;;
   *)
     echo "Usage: check-root | gen-cert
