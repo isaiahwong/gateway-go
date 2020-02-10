@@ -63,19 +63,26 @@ generate_keys() {
 }
 
 gen_cert() {
-  # Create manifest file
-  cp $basedir/template.yaml $basedir/$out
-  if [[ release == "production" ]]
+  if [[ $release == true ]]
   then
-      echo 'Release production'
-      basedir="$(dirname "$0")/release"
-  elif [[ nginx == true ]]
+    echo 'Release production'
+    # Create manifest file
+    tmpdir="$dir/../release"
+    cp $basedir/template.yaml $tmpdir/$out
+    basedir=$tmpdir
+  else
+    # Create manifest file
+    cp $basedir/template.yaml $basedir/$out
+  fi
+
+  if [[ $nginx == true ]]
   then
-      # Replaces ingress.yaml service. USE ONLY IN DEV
+  # Replaces ingress.yaml service. USE ONLY IN DEV
       find $basedir -name "ingress.yaml" \
       -exec sed -i '' -e \
       "s/serviceName:.*/serviceName: ${service}/g;" {} +;
   fi
+
 
     # Deletes any existing key directories 
   [[ -d $keydir ]] && rm -r $keydir
@@ -124,11 +131,11 @@ case $1 in
           shift
           ;;
       --release)
-          namespace="$2"
+          release="$2"
           shift
           ;;
       --nginx)
-          namespace="$2"
+          nginx="$2"
           shift
           ;;
       --out)
@@ -141,8 +148,8 @@ case $1 in
     done
     [ -z ${service} ] && service=gateway-service
     [ -z ${namespace} ] && namespace=default
-    [ -z ${nginx} ] && release=false
-    [ -z ${release} ] && release=production
+    [ -z ${nginx} ] && nginx=false
+    [ -z ${release} ] && release=false
     [ -z ${out} ] && out=gateway.yaml
 
     if [ ! -x "$(command -v openssl)" ]; then

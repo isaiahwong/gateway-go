@@ -131,8 +131,8 @@ func main() {
 	}
 
 	gs, err := server.NewGatewayServer(config.Port,
-		server.Logger(logger),
-		server.K8SClient(k),
+		server.WithLogger(logger),
+		server.WithK8SClient(k),
 	)
 	if err != nil {
 		logger.Fatalf("New Gateway error: %v", err)
@@ -177,7 +177,7 @@ func main() {
 		}
 	}()
 
-	// Kills server
+	// Gracefully kills server which running in the background
 	gracefully(
 		gs.Server,
 		ws.Server,

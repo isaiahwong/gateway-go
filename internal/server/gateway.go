@@ -23,10 +23,11 @@ import (
 
 // GatewayServer encapsulates GatewayServer and Observer
 type GatewayServer struct {
-	Name     string
-	Server   *http.Server
-	services map[string]*k8s.APIService
-	opts     *gatewayOptions
+	Name      string
+	Server    *http.Server
+	services  map[string]*k8s.APIService
+	logger    log.Logger
+	k8sClient *k8s.Client
 }
 
 type gatewayOptions struct {
@@ -42,7 +43,7 @@ var defaultGatewayOption = gatewayOptions{
 type GatewayOption func(*gatewayOptions)
 
 // Logger sets logger for gateway
-func Logger(l log.Logger) GatewayOption {
+func WithLogger(l log.Logger) GatewayOption {
 	return func(o *gatewayOptions) {
 		o.logger = l
 	}
@@ -50,7 +51,7 @@ func Logger(l log.Logger) GatewayOption {
 
 // K8SClient sets k8s client for GatewayServer.
 // Though there isn't a generic type interface :(
-func K8SClient(k *k8s.Client) GatewayOption {
+func WithK8SClient(k *k8s.Client) GatewayOption {
 	return func(o *gatewayOptions) {
 		o.k8sClient = k
 	}
@@ -67,7 +68,7 @@ func (gs *GatewayServer) OnNotify(e observer.Event) {
 func essentialMiddleware(gs *GatewayServer) func(*gin.Engine) {
 	return func(r *gin.Engine) {
 		r.Use(gin.Recovery())
-		r.Use(requestLogger(gs.opts.logger))
+		r.Use(requestLogger(gs.logger))
 		r.Use(WebhookRequests)
 		r.Use(authMW(&gs.services))
 		// Health route
@@ -96,6 +97,7 @@ func forwardAllHeaders(_ context.Context, r *http.Request) metadata.MD {
 	return md
 }
 
+// newGrpcMux creates a new mux that handles grpc calls.
 func newGrpcMux(ctx context.Context) *runtime.ServeMux {
 	runtime.HTTPError = HTTPError
 	runtime.OtherErrorHandler = OtherErrorHandler
@@ -186,7 +188,7 @@ func (gs *GatewayServer) applyRoutes() {
 		essentialMiddleware(gs),
 	)
 	if err != nil {
-		gs.opts.logger.Errorf("applyRoutes: %v", err)
+		gs.logger.Errorf("applyRoutes: %v", err)
 	}
 
 	// Iterate services mapping them to gin router
@@ -195,7 +197,7 @@ func (gs *GatewayServer) applyRoutes() {
 		// Ensures required fields are populated
 		err := validate.Struct(svc)
 		if err != nil {
-			gs.opts.logger.Error(err)
+			gs.logger.Error(err)
 			continue
 		}
 		// Iterate exposed ports of services
@@ -207,14 +209,14 @@ func (gs *GatewayServer) applyRoutes() {
 				path := fmt.Sprintf("%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
 				err := applyHTTP(r, path, route)
 				if err != nil {
-					gs.opts.logger.Error(err)
+					gs.logger.Error(err)
 				}
 			case "grpc":
 				target := fmt.Sprintf("%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
 				path := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
 				err := applyGrpc(r, svc.ServiceName, svc.GRPCClientConn, target, path)
 				if err != nil {
-					gs.opts.logger.Error(err)
+					gs.logger.Error(err)
 				}
 			}
 		}
@@ -226,11 +228,11 @@ func (gs *GatewayServer) applyRoutes() {
 // updateServices updates gateway services
 func (gs *GatewayServer) updateServices(service *k8s.APIService) {
 	if service == nil {
-		gs.opts.logger.Error("updateServices: service is nil")
+		gs.logger.Error("updateServices: service is nil")
 		return
 	}
 	if service.DNSPath == "" {
-		gs.opts.logger.Error("updateServices: service.DNSPath is empty")
+		gs.logger.Error("updateServices: service.DNSPath is empty")
 		return
 	}
 	// Create map if services is not assigned
@@ -242,11 +244,11 @@ func (gs *GatewayServer) updateServices(service *k8s.APIService) {
 
 func (gs *GatewayServer) deleteServices(service *k8s.APIService) {
 	if service == nil {
-		gs.opts.logger.Error("deleteServices: service is nil")
+		gs.logger.Error("deleteServices: service is nil")
 		return
 	}
 	if service.DNSPath == "" {
-		gs.opts.logger.Error("deleteServices: service.DNSPath is empty")
+		gs.logger.Error("deleteServices: service.DNSPath is empty")
 		return
 	}
 	// Create map if services is not assigned
@@ -259,12 +261,12 @@ func (gs *GatewayServer) deleteServices(service *k8s.APIService) {
 // fetchAllServices fetches all services from cluster
 func (gs *GatewayServer) fetchAllServices() error {
 	// Get K8S Services in cluster
-	svcs, err := gs.opts.k8sClient.GetServices("default")
+	svcs, err := gs.k8sClient.GetServices("default")
 	if err != nil {
 		return fmt.Errorf("fetchAllServices: GetServices: %v", err)
 	}
 	for _, d := range svcs {
-		o, err := gs.opts.k8sClient.CoreAPI().Admission().UnmarshalK8SObject(d)
+		o, err := gs.k8sClient.CoreAPI().Admission().UnmarshalK8SObject(d)
 		if err != nil {
 			return fmt.Errorf("fetchAllServices: %v", err)
 		}
@@ -272,7 +274,7 @@ func (gs *GatewayServer) fetchAllServices() error {
 		if strings.ToLower(o.Metadata.Labels.ResourceType) != string(enum.LabelAPIService) {
 			continue
 		}
-		s, err := gs.opts.k8sClient.CoreAPI().APIServices().ObjectToAPI(o)
+		s, err := gs.k8sClient.CoreAPI().APIServices().ObjectToAPI(o)
 		if err != nil {
 			return fmt.Errorf("fetchAllServices: %v", err)
 		}
@@ -283,18 +285,18 @@ func (gs *GatewayServer) fetchAllServices() error {
 
 // apply updates apiservices to gatway services
 func (gs *GatewayServer) apply(ar *k8s.AdmissionRegistration) {
-	s, err := gs.opts.k8sClient.CoreAPI().APIServices().ObjectToAPI(&ar.Request.Object)
+	s, err := gs.k8sClient.CoreAPI().APIServices().ObjectToAPI(&ar.Request.Object)
 	if err != nil {
-		gs.opts.logger.Error(err)
+		gs.logger.Error(err)
 	}
 	gs.updateServices(s)
 	gs.applyRoutes()
 }
 
 func (gs *GatewayServer) delete(ar *k8s.AdmissionRegistration) {
-	s, err := gs.opts.k8sClient.CoreAPI().APIServices().ObjectToAPI(&ar.Request.OldObject)
+	s, err := gs.k8sClient.CoreAPI().APIServices().ObjectToAPI(&ar.Request.OldObject)
 	if err != nil {
-		gs.opts.logger.Error(err)
+		gs.logger.Error(err)
 	}
 	gs.deleteServices(s)
 	gs.applyRoutes()
@@ -304,14 +306,14 @@ func (gs *GatewayServer) delete(ar *k8s.AdmissionRegistration) {
 // such as parsing AdmissionRequest, filtering
 // and routing to its necessary
 func (gs *GatewayServer) directAdmission(d []byte) {
-	ar, err := gs.opts.k8sClient.CoreAPI().Admission().Unmarshal(d)
+	ar, err := gs.k8sClient.CoreAPI().Admission().Unmarshal(d)
 	if err != nil {
-		gs.opts.logger.Error(err)
+		gs.logger.Error(err)
 		return
 	}
 	// Filter admission request if incoming request is not of K8S Service Object.
 	if strings.ToLower(ar.Request.Kind.Kind) != string(enum.K8SServiceObject) {
-		gs.opts.logger.Printf("Admission request %v is not service")
+		gs.logger.Printf("Admission request %v is not service")
 		return
 	}
 	// Filter admission request if incoming request does not have api-service labeled.
@@ -341,10 +343,11 @@ func NewGatewayServer(port string, opt ...GatewayOption) (*GatewayServer, error)
 	}
 	// Initialize GatewayServer
 	gs := &GatewayServer{
-		opts:     &opts,
-		services: map[string]*k8s.APIService{},
-		Server:   s,
-		Name:     "Gateway Server",
+		services:  map[string]*k8s.APIService{},
+		Server:    s,
+		Name:      "Gateway Server",
+		logger:    opts.logger,
+		k8sClient: opts.k8sClient,
 	}
 	// Initialize K8SClient if nil
 	if opts.k8sClient != nil {

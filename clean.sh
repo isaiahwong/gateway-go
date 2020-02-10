@@ -3,7 +3,7 @@
 # eval $(minikube docker-env)
 
 # api/gateway
-docker rmi $(docker images | grep registry.gitlab.com/isaiahwong/go/api/gateway) --force 2>/dev/null
+docker rmi $(docker images | grep registry.gitlab.com/isaiahwong/cluster/gateway) --force 2>/dev/null
 
 docker rmi $( docker images | grep '<none>') --force 2>/dev/null
 

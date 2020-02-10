@@ -1,6 +1,6 @@
 $(shell PATH=$PATH:$GOPATH/bin)
 BUILD_ID := $(shell git rev-parse --short HEAD 2>/dev/null || echo no-commit-id)
-IMAGE_NAME := registry.gitlab.com/isaiahwong/go/api/gateway
+IMAGE_NAME := registry.gitlab.com/isaiahwong/cluster/gateway
 VERSION := 0.0.1
 
 PROTO_DIR := ../../pb
