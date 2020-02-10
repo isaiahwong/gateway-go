@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/golang/protobuf/ptypes/any"
-	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
 )
 
@@ -52,24 +52,25 @@ type errorBody struct {
 
 // HTTPError replies to the request with the error.
 // Overrides runtime.error HTTPError
-func HTTPError(ctx context.Context, _ *gwruntime.ServeMux, marshaler gwruntime.Marshaler, w http.ResponseWriter, _ *http.Request, err error) {
-	const fallback = `{"error": "failed to marshal error message"}`
-	code := gwruntime.HTTPStatusFromCode(grpc.Code(err))
+func HTTPError(ctx context.Context, _ *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, _ *http.Request, err error) {
+	const fallback = `{"error": "An unexpected error occurred."}`
+	code := runtime.HTTPStatusFromCode(grpc.Code(err))
 	w.Header().Set("Content-type", marshaler.ContentType())
 	w.WriteHeader(code)
 
 	eb := errorBody{
 		Error: grpc.ErrorDesc(err),
 	}
-	md, ok := gwruntime.ServerMetadataFromContext(ctx)
+	md, ok := runtime.ServerMetadataFromContext(ctx)
 	if ok {
-		details := md.TrailerMD.Get("errors-bin")[0]
-		// Maps json values to error body
-		json.Unmarshal([]byte(details), &eb)
+		if details := md.TrailerMD.Get("errors-bin"); len(details) > 0 {
+			// Maps json values to error body
+			json.Unmarshal([]byte(details[0]), &eb)
+		}
 	}
-	jErr := json.NewEncoder(w).Encode(eb)
+	err = json.NewEncoder(w).Encode(eb)
 
-	if jErr != nil {
+	if err != nil {
 		w.Write([]byte(fallback))
 	}
 }

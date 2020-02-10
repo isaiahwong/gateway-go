@@ -6,7 +6,7 @@ package protogen
 
 import (
 	"context"
-	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
 	{{- range $i, $e := .}}
 	"github.com/isaiahwong/gateway-go/protogen{{ $e.Path }}"
@@ -18,7 +18,7 @@ type ServiceDesc struct {
 	PackageSVC     string
 	Package        string
 	CurrentPackage string
-	Handler        func(context.Context, *gwruntime.ServeMux, *grpc.ClientConn) error
+	Handler        func(context.Context, *runtime.ServeMux, *grpc.ClientConn) error
 }
 
 var _Services = map[string]ServiceDesc{

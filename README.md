@@ -9,6 +9,7 @@ Gateway provides a single **REST** entry point which proxies requests to your mi
 
 # Quickstart
 
+
 # Installation
 Starting a local version of the cluster on your development machine.  
 Install these tools to run Kubernetes cluster locally 
@@ -42,6 +43,9 @@ kubectl apply -f k8s/nginx-ingress/ingress.yaml
 kubectl apply -f ./k8s/
 
 ```
+
+# Headers
+....
 
 # Configuring the gateway with environment variables
 The environment variables can be defined in the `k8s/env.yaml ` or `/src/.env` file.  

@@ -3,14 +3,16 @@ package server
 // TODO Implement queue
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 
-	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/isaiahwong/gateway-go/internal/k8s"
 	"github.com/isaiahwong/gateway-go/internal/k8s/enum"
 	"github.com/isaiahwong/gateway-go/internal/observer"
@@ -66,6 +68,7 @@ func essentialMiddleware(gs *GatewayServer) func(*gin.Engine) {
 	return func(r *gin.Engine) {
 		r.Use(gin.Recovery())
 		r.Use(requestLogger(gs.opts.logger))
+		r.Use(WebhookRequests)
 		r.Use(authMW(&gs.services))
 		// Health route
 		r.GET("/hz", func(c *gin.Context) {
@@ -77,11 +80,28 @@ func essentialMiddleware(gs *GatewayServer) func(*gin.Engine) {
 	}
 }
 
-func newGrpcMux(ctx context.Context) *gwruntime.ServeMux {
-	gwruntime.HTTPError = HTTPError
-	gwruntime.OtherErrorHandler = OtherErrorHandler
-	mux := gwruntime.NewServeMux()
-	// TODO: Custom error handler, etc 404
+// forwardAllHeaders packages http headers into headers-bin and forwards the metadata
+func forwardAllHeaders(_ context.Context, r *http.Request) metadata.MD {
+	headers := map[string]string{}
+	for k, v := range r.Header {
+		if len(v) > 0 {
+			headers[strings.ToLower(k)] = v[0]
+		}
+	}
+	h, err := json.Marshal(headers)
+	if err != nil {
+		return nil
+	}
+	md := metadata.New(map[string]string{"headers-bin": string(h)})
+	return md
+}
+
+func newGrpcMux(ctx context.Context) *runtime.ServeMux {
+	runtime.HTTPError = HTTPError
+	runtime.OtherErrorHandler = OtherErrorHandler
+	mux := runtime.NewServeMux(
+		runtime.WithMetadata(forwardAllHeaders),
+	)
 	return mux
 }
 
@@ -112,7 +132,7 @@ func applyHTTP(r *gin.Engine, path string, route string) error {
 	return nil
 }
 
-func applyGrpc(mux *gwruntime.ServeMux, r *gin.Engine, serviceName string, conn *grpc.ClientConn, target string, route string) error {
+func applyGrpc(r *gin.Engine, serviceName string, conn *grpc.ClientConn, target string, route string) error {
 	var err error
 	var svc *protogen.ServiceDesc
 	if r == nil {
@@ -145,6 +165,9 @@ func applyGrpc(mux *gwruntime.ServeMux, r *gin.Engine, serviceName string, conn 
 			return nil
 		}
 	}
+	// creates a new mux
+	mux := newGrpcMux(context.Background())
+	// pass mux to grpc handlers
 	svc.Handler(context.Background(), mux, conn)
 	handler := func(c *gin.Context) {
 		mux.ServeHTTP(c.Writer, c.Request)
@@ -165,7 +188,6 @@ func (gs *GatewayServer) applyRoutes() {
 	if err != nil {
 		gs.opts.logger.Errorf("applyRoutes: %v", err)
 	}
-	mux := newGrpcMux(context.Background())
 
 	// Iterate services mapping them to gin router
 	for _, svc := range gs.services {
@@ -190,14 +212,13 @@ func (gs *GatewayServer) applyRoutes() {
 			case "grpc":
 				target := fmt.Sprintf("%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
 				path := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
-				err := applyGrpc(mux, r, svc.ServiceName, svc.GRPCClientConn, target, path)
+				err := applyGrpc(r, svc.ServiceName, svc.GRPCClientConn, target, path)
 				if err != nil {
 					gs.opts.logger.Error(err)
 				}
 			}
 		}
 	}
-	fmt.Println("applied")
 	// Apply routes to server handler
 	gs.Server.Handler = r
 }
