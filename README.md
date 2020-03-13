@@ -1,3 +1,6 @@
+# WIP
+Porting gateway node to gateway go
+
 # Gateway-go
 Gateway-go provides a single [`REST`](https://en.m.wikipedia.org/wiki/Representational_state_transfer ) entry point which forwards requests to your microservices in your [Kubernetes][k8s] cluster. It discovers your [services][k8s-service] that resides in your cluster to which are exposed via **HTTP** or **gRPC**. Incoming requests will then be proxied to the respective services. Gateway works on (local) and GCP's Google Kubernetes Engine. 
 
@@ -203,7 +206,6 @@ Running without Kubernetes i.e `npm run dev`
 Rename `/src/.env.example` to `/src/.env`
 ```
 # Main
-NODE_ENV=development
 
 # K8S
 SVC_DISCOVERY_INTERVAL=5000
