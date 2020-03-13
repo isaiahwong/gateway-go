@@ -150,7 +150,7 @@ func applyGrpc(r *gin.Engine, serviceName string, conn *grpc.ClientConn, target 
 		// Formats it to dash i.e api-auth-authservice
 		dash := strings.ToLower(strings.Join(split, "-"))
 		// Formats it to underscore i.e api_auth_authservice
-		underscore := strings.ToLower(strings.Join(split, "-"))
+		underscore := strings.ToLower(strings.Join(split, "_"))
 		if serviceName == dash || serviceName == underscore {
 			svc = &s
 			break

@@ -58,7 +58,7 @@ spec:
       containers:
         - name: gateway
           image: registry.gitlab.com/isaiahwong/cluster/gateway
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: {{IMAGE_PULL_POLICY}}
           ports:
             - name: gateway-port
               containerPort: 5000

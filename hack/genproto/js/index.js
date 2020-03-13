@@ -41,7 +41,7 @@ function loadPackageDefinition(packageDef) {
       current.package = nameComponents
         .slice(0, nameComponents.length - 1)
         .join('.');
-      current.currentPackage = nameComponents[nameComponents.length - 2];
+      current.currentPackage = nameComponents[1];
       current.originalPackage = nameComponents
         .slice(0, nameComponents.length - 1)
         .join('_');

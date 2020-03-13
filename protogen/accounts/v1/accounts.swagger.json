@@ -1,0 +1,329 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "accounts/v1/accounts.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/accounts": {
+      "post": {
+        "operationId": "IsAuthenticated",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AuthenticateResponse"
+            }
+          }
+        },
+        "tags": [
+          "AccountsService"
+        ]
+      }
+    },
+    "/v1/accounts/login": {
+      "post": {
+        "operationId": "Login",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UserResponse"
+            }
+          }
+        },
+        "tags": [
+          "AccountsService"
+        ]
+      }
+    },
+    "/v1/accounts/signup": {
+      "post": {
+        "operationId": "SignUp",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UserResponse"
+            }
+          }
+        },
+        "tags": [
+          "AccountsService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "PreferencesEmailNotifications": {
+      "type": "object",
+      "properties": {
+        "unsubscribe_from_all": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
+    "PreferencesPushNotifications": {
+      "type": "object",
+      "properties": {
+        "unsubscribe_from_all": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
+    "v1Auth": {
+      "type": "object",
+      "properties": {
+        "facebook": {
+          "$ref": "#/definitions/v1UserProfileFacebook"
+        },
+        "google": {
+          "$ref": "#/definitions/v1UserProfileGoogle"
+        },
+        "email": {
+          "type": "string"
+        },
+        "first_name": {
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "picture": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "password_hash_method": {
+          "type": "string"
+        },
+        "password_reset_id": {
+          "type": "string"
+        },
+        "password_reset_token": {
+          "type": "string"
+        },
+        "password_reset_expires": {
+          "type": "string",
+          "format": "int64"
+        },
+        "password_modified": {
+          "type": "string",
+          "format": "int64"
+        },
+        "verified": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "verified_date": {
+          "type": "string",
+          "format": "int64"
+        },
+        "verification_token": {
+          "type": "string"
+        },
+        "verification_token_expires": {
+          "type": "string",
+          "format": "int64"
+        },
+        "captcha_challenge_ts": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "v1AuthenticateResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
+    "v1Preferences": {
+      "type": "object",
+      "properties": {
+        "language": {
+          "type": "string"
+        },
+        "email_notifications": {
+          "$ref": "#/definitions/PreferencesEmailNotifications"
+        },
+        "push_notifications": {
+          "$ref": "#/definitions/PreferencesPushNotifications"
+        }
+      },
+      "title": "Preferences"
+    },
+    "v1ProfileEmails": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ProfileName": {
+      "type": "object",
+      "properties": {
+        "family_name": {
+          "type": "string"
+        },
+        "given_name": {
+          "type": "string"
+        },
+        "middle_name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ProfilePhotos": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Session": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "int64"
+        },
+        "location": {
+          "type": "string"
+        },
+        "lat": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "long": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "object": {
+          "type": "string"
+        },
+        "auth": {
+          "$ref": "#/definitions/v1Auth"
+        },
+        "preferences": {
+          "$ref": "#/definitions/v1Preferences"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "logged_in": {
+          "type": "string",
+          "format": "int64"
+        },
+        "sessions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Session"
+          }
+        }
+      }
+    },
+    "v1UserProfileFacebook": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/definitions/v1ProfileName"
+        },
+        "emails": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ProfileEmails"
+          }
+        },
+        "photos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ProfilePhotos"
+          }
+        }
+      }
+    },
+    "v1UserProfileGoogle": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/definitions/v1ProfileName"
+        },
+        "emails": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ProfileEmails"
+          }
+        },
+        "photos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ProfilePhotos"
+          }
+        }
+      }
+    },
+    "v1UserResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/v1User"
+        }
+      }
+    }
+  }
+}

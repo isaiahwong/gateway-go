@@ -63,6 +63,7 @@ generate_keys() {
 }
 
 gen_cert() {
+  imagepullpolicy=IfNotPresent
   if [[ $release == true ]]
   then
     echo 'Release production'
@@ -70,6 +71,7 @@ gen_cert() {
     tmpdir="$dir/../release"
     cp $basedir/template.yaml $tmpdir/$out
     basedir=$tmpdir
+    imagepullpolicy=Always
   else
     # Create manifest file
     cp $basedir/template.yaml $basedir/$out
@@ -105,6 +107,7 @@ gen_cert() {
   "s/{{TLS_CRT}}/${tls_crt}/g;\
   s/{{TLS_KEY}}/${tls_key}/g;\
   s/{{CA_CRT}}/${ca_pem_b64}/g;\
+  s/{{IMAGE_PULL_POLICY}}/${imagepullpolicy}/g;\
   s/{{SERVICE_NAME}}/${service}/g;\
   s/{{NAMESPACE}}/${namespace}/g;" {} +;
 

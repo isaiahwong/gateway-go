@@ -1,50 +1,97 @@
-# Gateway
-Gateway provides a single **REST** entry point which proxies requests to your microservices in your [Kubernetes][k8s] cluster. Gateway discovers your [services][k8s-service] that resides in your cluster to which are exposed via **HTTP** or **gRPC**. Incoming requests will then be proxied to the respective services. Gateway works on (local) and GCP's Google Kubernetes Engine.
+# Gateway-go
+Gateway-go provides a single [`REST`](https://en.m.wikipedia.org/wiki/Representational_state_transfer ) entry point which forwards requests to your microservices in your [Kubernetes][k8s] cluster. It discovers your [services][k8s-service] that resides in your cluster to which are exposed via **HTTP** or **gRPC**. Incoming requests will then be proxied to the respective services. Gateway works on (local) and GCP's Google Kubernetes Engine. 
+
+Gateway-go utilises [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway) to generate gRPC stubs that map to [`google.api.http`](https://github.com/googleapis/googleapis/blob/master/google/api/http.proto#L46) annotations. Portions of it’s [`README.md`](https://github.com/grpc-ecosystem/grpc-gateway/blob/master/README.md) has been included in the documentation.
+
 
 # Table of Contents
-* [Getting Started](#getting-started)
+* [Installation](#Installation)
 * [Gateway](#gateway)
 * [Directory Layout](#Directory-Layout)
 * [Technology Stack](#technology-stack)
 
-# Quickstart
-
-
 # Installation
-Starting a local version of the cluster on your development machine.  
-Install these tools to run Kubernetes cluster locally 
+The gateway-go requires a local installation of the Google protocol buffers compiler `protoc`.
 
-1. Installation
-   - [kubectl][kubectl] (Kubernetes CLI)
-   - [Docker Desktop][docker-desktop]
-   - [Skaffold][skaffold] Application is deployed to Kubernetes with a single command using Skaffold
+[Link: protoc](https://github.com/protocolbuffers/protobuf/releases)
 
-2. Launch Docker Desktop
-   - Kubernetes > Enable Kubernetes
-
-3. Run `skaffold dev`
-
-## Without skaffold
-
-Installing `nginx-ingress`
-```
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml
-
-or
-
-kubectl apply -f k8s/nginx-ingress/mandatory.yaml
-```
+Install the following packages with `go get -u`
 
 ```
-# Apply ingress rules
-kubectl apply -f k8s/nginx-ingress/ingress.yaml
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+go get -u github.com/golang/protobuf/protoc-gen-go
+```
+
+Ensure `$GOBIN` is configured
+
+# Usage
+Example proto files are included in the project.
+
+
+1. Define your protos in `proto/api`
+
+You can separate your proto messages into different files. In the example below, where datatype Payment is in `proto/api/payment/schema.proto` 
+
+`proto/api/payment`:
+
+```
+syntax = "proto3";
+
+package api.payment;
+
+option go_package = "payment";
+
+import "payment/schema.proto";
+import "payment/paypal.proto";
+import "payment/stripe.proto";
+
+import "google/api/annotations.proto";
+
+service PaymentService {
+  rpc CreatePayment(CreatePaymentRequest) returns (CreatePaymentResponse) {
+    option (google.api.http) = {
+      post: "/v1/payment/create",
+      body: "*"
+    };
+  };
+
+  message CreatePaymentRequest {
+   string user = 1;
+   string email = 2;
+  }
+
+  message CreatePaymentResponse {
+   bool success = 1;
+   Payment payment = 2;
+  }
+}
+
+```
+
+2\. Generate gRPC stub
+
+The following generates gRPC code for Golang based on path/to/your_service.proto:
+
+```
+protoc -I/usr/local/include -I. \
+  -I$GOPATH/src \
+  -I ./proto/third_party/googleapis\
+  --go_out=plugins=grpc:. path/to/your_service.proto
+```
+
+The following code generates all proto files in the folder `proto/api/payment`
+
+```
+protoc -I./proto/api -I./proto/third_party/googleapis --go_out=plugins=grpc:./protogen ./proto/api/payment/*.proto
+```
+
 
 # Apply gateway deployment, services and environment files
 kubectl apply -f ./k8s/
 
 ```
 
-# Headers
+# Webhook
 ....
 
 # Configuring the gateway with environment variables
