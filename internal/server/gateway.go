@@ -3,7 +3,6 @@ package server
 // TODO Implement queue
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -83,17 +82,12 @@ func essentialMiddleware(gs *GatewayServer) func(*gin.Engine) {
 
 // forwardAllHeaders packages http headers into headers-bin and forwards the metadata
 func forwardAllHeaders(_ context.Context, r *http.Request) metadata.MD {
-	headers := map[string]string{}
+	md := metadata.Pairs()
 	for k, v := range r.Header {
 		if len(v) > 0 {
-			headers[strings.ToLower(k)] = v[0]
+			md.Set(strings.ToLower(k), v[0])
 		}
 	}
-	h, err := json.Marshal(headers)
-	if err != nil {
-		return nil
-	}
-	md := metadata.New(map[string]string{"headers-bin": string(h)})
 	return md
 }
 

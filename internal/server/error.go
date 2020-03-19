@@ -64,8 +64,10 @@ func HTTPError(ctx context.Context, _ *runtime.ServeMux, marshaler runtime.Marsh
 	md, ok := runtime.ServerMetadataFromContext(ctx)
 	if ok {
 		if details := md.TrailerMD.Get("errors-bin"); len(details) > 0 {
+			e := []errors{}
 			// Maps json values to error body
-			json.Unmarshal([]byte(details[0]), &eb)
+			json.Unmarshal([]byte(details[0]), &e)
+			eb.Errors = e
 		}
 	}
 	err = json.NewEncoder(w).Encode(eb)
