@@ -56,6 +56,124 @@ func (m *Empty) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Empty proto.InternalMessageInfo
 
+type Body struct {
+	Payload              []byte   `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Body) Reset()         { *m = Body{} }
+func (m *Body) String() string { return proto.CompactTextString(m) }
+func (*Body) ProtoMessage()    {}
+func (*Body) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8726aced901bdecf, []int{1}
+}
+
+func (m *Body) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Body.Unmarshal(m, b)
+}
+func (m *Body) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Body.Marshal(b, m, deterministic)
+}
+func (m *Body) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Body.Merge(m, src)
+}
+func (m *Body) XXX_Size() int {
+	return xxx_messageInfo_Body.Size(m)
+}
+func (m *Body) XXX_DiscardUnknown() {
+	xxx_messageInfo_Body.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Body proto.InternalMessageInfo
+
+func (m *Body) GetPayload() []byte {
+	if m != nil {
+		return m.Payload
+	}
+	return nil
+}
+
+type HydraResponse struct {
+	Challenge            string   `protobuf:"bytes,1,opt,name=challenge,proto3" json:"challenge,omitempty"`
+	RequestUrl           string   `protobuf:"bytes,2,opt,name=request_url,json=requestUrl,proto3" json:"request_url,omitempty"`
+	SessionId            string   `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Skip                 bool     `protobuf:"varint,4,opt,name=skip,proto3" json:"skip,omitempty"`
+	Subject              string   `protobuf:"bytes,5,opt,name=subject,proto3" json:"subject,omitempty"`
+	RedirectTo           string   `protobuf:"bytes,6,opt,name=redirect_to,json=redirectTo,proto3" json:"redirect_to,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *HydraResponse) Reset()         { *m = HydraResponse{} }
+func (m *HydraResponse) String() string { return proto.CompactTextString(m) }
+func (*HydraResponse) ProtoMessage()    {}
+func (*HydraResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8726aced901bdecf, []int{2}
+}
+
+func (m *HydraResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_HydraResponse.Unmarshal(m, b)
+}
+func (m *HydraResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_HydraResponse.Marshal(b, m, deterministic)
+}
+func (m *HydraResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HydraResponse.Merge(m, src)
+}
+func (m *HydraResponse) XXX_Size() int {
+	return xxx_messageInfo_HydraResponse.Size(m)
+}
+func (m *HydraResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_HydraResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_HydraResponse proto.InternalMessageInfo
+
+func (m *HydraResponse) GetChallenge() string {
+	if m != nil {
+		return m.Challenge
+	}
+	return ""
+}
+
+func (m *HydraResponse) GetRequestUrl() string {
+	if m != nil {
+		return m.RequestUrl
+	}
+	return ""
+}
+
+func (m *HydraResponse) GetSessionId() string {
+	if m != nil {
+		return m.SessionId
+	}
+	return ""
+}
+
+func (m *HydraResponse) GetSkip() bool {
+	if m != nil {
+		return m.Skip
+	}
+	return false
+}
+
+func (m *HydraResponse) GetSubject() string {
+	if m != nil {
+		return m.Subject
+	}
+	return ""
+}
+
+func (m *HydraResponse) GetRedirectTo() string {
+	if m != nil {
+		return m.RedirectTo
+	}
+	return ""
+}
+
 type AuthenticateResponse struct {
 	Status               bool     `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -67,7 +185,7 @@ func (m *AuthenticateResponse) Reset()         { *m = AuthenticateResponse{} }
 func (m *AuthenticateResponse) String() string { return proto.CompactTextString(m) }
 func (*AuthenticateResponse) ProtoMessage()    {}
 func (*AuthenticateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8726aced901bdecf, []int{1}
+	return fileDescriptor_8726aced901bdecf, []int{3}
 }
 
 func (m *AuthenticateResponse) XXX_Unmarshal(b []byte) error {
@@ -101,8 +219,6 @@ type SignUpRequest struct {
 	Email                string   `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
 	Password             string   `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
 	ConfirmPassword      string   `protobuf:"bytes,5,opt,name=confirm_password,json=confirmPassword,proto3" json:"confirm_password,omitempty"`
-	CaptchaToken         string   `protobuf:"bytes,6,opt,name=captcha_token,json=captchaToken,proto3" json:"captcha_token,omitempty"`
-	Ip                   string   `protobuf:"bytes,7,opt,name=ip,proto3" json:"ip,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -112,7 +228,7 @@ func (m *SignUpRequest) Reset()         { *m = SignUpRequest{} }
 func (m *SignUpRequest) String() string { return proto.CompactTextString(m) }
 func (*SignUpRequest) ProtoMessage()    {}
 func (*SignUpRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8726aced901bdecf, []int{2}
+	return fileDescriptor_8726aced901bdecf, []int{4}
 }
 
 func (m *SignUpRequest) XXX_Unmarshal(b []byte) error {
@@ -168,163 +284,521 @@ func (m *SignUpRequest) GetConfirmPassword() string {
 	return ""
 }
 
-func (m *SignUpRequest) GetCaptchaToken() string {
-	if m != nil {
-		return m.CaptchaToken
-	}
-	return ""
-}
-
-func (m *SignUpRequest) GetIp() string {
-	if m != nil {
-		return m.Ip
-	}
-	return ""
-}
-
-type LoginRequest struct {
+type AuthenticateRequest struct {
 	Email                string   `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
 	Password             string   `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	CaptchaToken         string   `protobuf:"bytes,3,opt,name=captcha_token,json=captchaToken,proto3" json:"captcha_token,omitempty"`
-	Challenge            string   `protobuf:"bytes,4,opt,name=challenge,proto3" json:"challenge,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *LoginRequest) Reset()         { *m = LoginRequest{} }
-func (m *LoginRequest) String() string { return proto.CompactTextString(m) }
-func (*LoginRequest) ProtoMessage()    {}
-func (*LoginRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8726aced901bdecf, []int{3}
+func (m *AuthenticateRequest) Reset()         { *m = AuthenticateRequest{} }
+func (m *AuthenticateRequest) String() string { return proto.CompactTextString(m) }
+func (*AuthenticateRequest) ProtoMessage()    {}
+func (*AuthenticateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8726aced901bdecf, []int{5}
 }
 
-func (m *LoginRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_LoginRequest.Unmarshal(m, b)
+func (m *AuthenticateRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthenticateRequest.Unmarshal(m, b)
 }
-func (m *LoginRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_LoginRequest.Marshal(b, m, deterministic)
+func (m *AuthenticateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthenticateRequest.Marshal(b, m, deterministic)
 }
-func (m *LoginRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_LoginRequest.Merge(m, src)
+func (m *AuthenticateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthenticateRequest.Merge(m, src)
 }
-func (m *LoginRequest) XXX_Size() int {
-	return xxx_messageInfo_LoginRequest.Size(m)
+func (m *AuthenticateRequest) XXX_Size() int {
+	return xxx_messageInfo_AuthenticateRequest.Size(m)
 }
-func (m *LoginRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_LoginRequest.DiscardUnknown(m)
+func (m *AuthenticateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthenticateRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_LoginRequest proto.InternalMessageInfo
+var xxx_messageInfo_AuthenticateRequest proto.InternalMessageInfo
 
-func (m *LoginRequest) GetEmail() string {
+func (m *AuthenticateRequest) GetEmail() string {
 	if m != nil {
 		return m.Email
 	}
 	return ""
 }
 
-func (m *LoginRequest) GetPassword() string {
+func (m *AuthenticateRequest) GetPassword() string {
 	if m != nil {
 		return m.Password
 	}
 	return ""
 }
 
-func (m *LoginRequest) GetCaptchaToken() string {
+func (m *AuthenticateRequest) GetCaptchaToken() string {
 	if m != nil {
 		return m.CaptchaToken
 	}
 	return ""
 }
 
-func (m *LoginRequest) GetChallenge() string {
-	if m != nil {
-		return m.Challenge
-	}
-	return ""
-}
-
-type UserResponse struct {
-	User                 *User    `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+type EmailExistsRequest struct {
+	Email                string   `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UserResponse) Reset()         { *m = UserResponse{} }
-func (m *UserResponse) String() string { return proto.CompactTextString(m) }
-func (*UserResponse) ProtoMessage()    {}
-func (*UserResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8726aced901bdecf, []int{4}
+func (m *EmailExistsRequest) Reset()         { *m = EmailExistsRequest{} }
+func (m *EmailExistsRequest) String() string { return proto.CompactTextString(m) }
+func (*EmailExistsRequest) ProtoMessage()    {}
+func (*EmailExistsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8726aced901bdecf, []int{6}
 }
 
-func (m *UserResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UserResponse.Unmarshal(m, b)
+func (m *EmailExistsRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EmailExistsRequest.Unmarshal(m, b)
 }
-func (m *UserResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UserResponse.Marshal(b, m, deterministic)
+func (m *EmailExistsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EmailExistsRequest.Marshal(b, m, deterministic)
 }
-func (m *UserResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UserResponse.Merge(m, src)
+func (m *EmailExistsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EmailExistsRequest.Merge(m, src)
 }
-func (m *UserResponse) XXX_Size() int {
-	return xxx_messageInfo_UserResponse.Size(m)
+func (m *EmailExistsRequest) XXX_Size() int {
+	return xxx_messageInfo_EmailExistsRequest.Size(m)
 }
-func (m *UserResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_UserResponse.DiscardUnknown(m)
+func (m *EmailExistsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_EmailExistsRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_UserResponse proto.InternalMessageInfo
+var xxx_messageInfo_EmailExistsRequest proto.InternalMessageInfo
 
-func (m *UserResponse) GetUser() *User {
+func (m *EmailExistsRequest) GetEmail() string {
 	if m != nil {
-		return m.User
+		return m.Email
+	}
+	return ""
+}
+
+type EmailExistsResponse struct {
+	Exist                bool     `protobuf:"varint,1,opt,name=exist,proto3" json:"exist,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *EmailExistsResponse) Reset()         { *m = EmailExistsResponse{} }
+func (m *EmailExistsResponse) String() string { return proto.CompactTextString(m) }
+func (*EmailExistsResponse) ProtoMessage()    {}
+func (*EmailExistsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8726aced901bdecf, []int{7}
+}
+
+func (m *EmailExistsResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EmailExistsResponse.Unmarshal(m, b)
+}
+func (m *EmailExistsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EmailExistsResponse.Marshal(b, m, deterministic)
+}
+func (m *EmailExistsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EmailExistsResponse.Merge(m, src)
+}
+func (m *EmailExistsResponse) XXX_Size() int {
+	return xxx_messageInfo_EmailExistsResponse.Size(m)
+}
+func (m *EmailExistsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_EmailExistsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EmailExistsResponse proto.InternalMessageInfo
+
+func (m *EmailExistsResponse) GetExist() bool {
+	if m != nil {
+		return m.Exist
+	}
+	return false
+}
+
+type RedirectResponse struct {
+	RedirectTo           string   `protobuf:"bytes,1,opt,name=redirect_to,json=redirectTo,proto3" json:"redirect_to,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RedirectResponse) Reset()         { *m = RedirectResponse{} }
+func (m *RedirectResponse) String() string { return proto.CompactTextString(m) }
+func (*RedirectResponse) ProtoMessage()    {}
+func (*RedirectResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8726aced901bdecf, []int{8}
+}
+
+func (m *RedirectResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RedirectResponse.Unmarshal(m, b)
+}
+func (m *RedirectResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RedirectResponse.Marshal(b, m, deterministic)
+}
+func (m *RedirectResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RedirectResponse.Merge(m, src)
+}
+func (m *RedirectResponse) XXX_Size() int {
+	return xxx_messageInfo_RedirectResponse.Size(m)
+}
+func (m *RedirectResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_RedirectResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RedirectResponse proto.InternalMessageInfo
+
+func (m *RedirectResponse) GetRedirectTo() string {
+	if m != nil {
+		return m.RedirectTo
+	}
+	return ""
+}
+
+type AccountResponse struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Object               string   `protobuf:"bytes,2,opt,name=object,proto3" json:"object,omitempty"`
+	Email                string   `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	FirstName            string   `protobuf:"bytes,4,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
+	LastName             string   `protobuf:"bytes,5,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
+	Name                 string   `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
+	Picture              string   `protobuf:"bytes,7,opt,name=picture,proto3" json:"picture,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AccountResponse) Reset()         { *m = AccountResponse{} }
+func (m *AccountResponse) String() string { return proto.CompactTextString(m) }
+func (*AccountResponse) ProtoMessage()    {}
+func (*AccountResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8726aced901bdecf, []int{9}
+}
+
+func (m *AccountResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AccountResponse.Unmarshal(m, b)
+}
+func (m *AccountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AccountResponse.Marshal(b, m, deterministic)
+}
+func (m *AccountResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AccountResponse.Merge(m, src)
+}
+func (m *AccountResponse) XXX_Size() int {
+	return xxx_messageInfo_AccountResponse.Size(m)
+}
+func (m *AccountResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_AccountResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AccountResponse proto.InternalMessageInfo
+
+func (m *AccountResponse) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *AccountResponse) GetObject() string {
+	if m != nil {
+		return m.Object
+	}
+	return ""
+}
+
+func (m *AccountResponse) GetEmail() string {
+	if m != nil {
+		return m.Email
+	}
+	return ""
+}
+
+func (m *AccountResponse) GetFirstName() string {
+	if m != nil {
+		return m.FirstName
+	}
+	return ""
+}
+
+func (m *AccountResponse) GetLastName() string {
+	if m != nil {
+		return m.LastName
+	}
+	return ""
+}
+
+func (m *AccountResponse) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *AccountResponse) GetPicture() string {
+	if m != nil {
+		return m.Picture
+	}
+	return ""
+}
+
+type IntrospectRequest struct {
+	Token                string   `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	Scope                string   `protobuf:"bytes,2,opt,name=scope,proto3" json:"scope,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *IntrospectRequest) Reset()         { *m = IntrospectRequest{} }
+func (m *IntrospectRequest) String() string { return proto.CompactTextString(m) }
+func (*IntrospectRequest) ProtoMessage()    {}
+func (*IntrospectRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8726aced901bdecf, []int{10}
+}
+
+func (m *IntrospectRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_IntrospectRequest.Unmarshal(m, b)
+}
+func (m *IntrospectRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_IntrospectRequest.Marshal(b, m, deterministic)
+}
+func (m *IntrospectRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IntrospectRequest.Merge(m, src)
+}
+func (m *IntrospectRequest) XXX_Size() int {
+	return xxx_messageInfo_IntrospectRequest.Size(m)
+}
+func (m *IntrospectRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_IntrospectRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_IntrospectRequest proto.InternalMessageInfo
+
+func (m *IntrospectRequest) GetToken() string {
+	if m != nil {
+		return m.Token
+	}
+	return ""
+}
+
+func (m *IntrospectRequest) GetScope() string {
+	if m != nil {
+		return m.Scope
+	}
+	return ""
+}
+
+type IntrospectResponse struct {
+	Active               bool     `protobuf:"varint,1,opt,name=active,proto3" json:"active,omitempty"`
+	Aud                  []string `protobuf:"bytes,2,rep,name=aud,proto3" json:"aud,omitempty"`
+	ClientId             string   `protobuf:"bytes,3,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	Exp                  int64    `protobuf:"varint,4,opt,name=exp,proto3" json:"exp,omitempty"`
+	Ext                  []byte   `protobuf:"bytes,5,opt,name=ext,proto3" json:"ext,omitempty"`
+	Iat                  int64    `protobuf:"varint,6,opt,name=iat,proto3" json:"iat,omitempty"`
+	Iss                  string   `protobuf:"bytes,7,opt,name=iss,proto3" json:"iss,omitempty"`
+	Nbf                  int64    `protobuf:"varint,8,opt,name=nbf,proto3" json:"nbf,omitempty"`
+	ObfuscatedSubject    string   `protobuf:"bytes,9,opt,name=obfuscated_subject,json=obfuscatedSubject,proto3" json:"obfuscated_subject,omitempty"`
+	Scope                string   `protobuf:"bytes,10,opt,name=scope,proto3" json:"scope,omitempty"`
+	Sub                  string   `protobuf:"bytes,11,opt,name=sub,proto3" json:"sub,omitempty"`
+	TokenType            string   `protobuf:"bytes,12,opt,name=token_type,json=tokenType,proto3" json:"token_type,omitempty"`
+	Username             string   `protobuf:"bytes,13,opt,name=username,proto3" json:"username,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *IntrospectResponse) Reset()         { *m = IntrospectResponse{} }
+func (m *IntrospectResponse) String() string { return proto.CompactTextString(m) }
+func (*IntrospectResponse) ProtoMessage()    {}
+func (*IntrospectResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8726aced901bdecf, []int{11}
+}
+
+func (m *IntrospectResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_IntrospectResponse.Unmarshal(m, b)
+}
+func (m *IntrospectResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_IntrospectResponse.Marshal(b, m, deterministic)
+}
+func (m *IntrospectResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IntrospectResponse.Merge(m, src)
+}
+func (m *IntrospectResponse) XXX_Size() int {
+	return xxx_messageInfo_IntrospectResponse.Size(m)
+}
+func (m *IntrospectResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_IntrospectResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_IntrospectResponse proto.InternalMessageInfo
+
+func (m *IntrospectResponse) GetActive() bool {
+	if m != nil {
+		return m.Active
+	}
+	return false
+}
+
+func (m *IntrospectResponse) GetAud() []string {
+	if m != nil {
+		return m.Aud
 	}
 	return nil
 }
 
+func (m *IntrospectResponse) GetClientId() string {
+	if m != nil {
+		return m.ClientId
+	}
+	return ""
+}
+
+func (m *IntrospectResponse) GetExp() int64 {
+	if m != nil {
+		return m.Exp
+	}
+	return 0
+}
+
+func (m *IntrospectResponse) GetExt() []byte {
+	if m != nil {
+		return m.Ext
+	}
+	return nil
+}
+
+func (m *IntrospectResponse) GetIat() int64 {
+	if m != nil {
+		return m.Iat
+	}
+	return 0
+}
+
+func (m *IntrospectResponse) GetIss() string {
+	if m != nil {
+		return m.Iss
+	}
+	return ""
+}
+
+func (m *IntrospectResponse) GetNbf() int64 {
+	if m != nil {
+		return m.Nbf
+	}
+	return 0
+}
+
+func (m *IntrospectResponse) GetObfuscatedSubject() string {
+	if m != nil {
+		return m.ObfuscatedSubject
+	}
+	return ""
+}
+
+func (m *IntrospectResponse) GetScope() string {
+	if m != nil {
+		return m.Scope
+	}
+	return ""
+}
+
+func (m *IntrospectResponse) GetSub() string {
+	if m != nil {
+		return m.Sub
+	}
+	return ""
+}
+
+func (m *IntrospectResponse) GetTokenType() string {
+	if m != nil {
+		return m.TokenType
+	}
+	return ""
+}
+
+func (m *IntrospectResponse) GetUsername() string {
+	if m != nil {
+		return m.Username
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*Empty)(nil), "api.accounts.v1.Empty")
+	proto.RegisterType((*Body)(nil), "api.accounts.v1.Body")
+	proto.RegisterType((*HydraResponse)(nil), "api.accounts.v1.HydraResponse")
 	proto.RegisterType((*AuthenticateResponse)(nil), "api.accounts.v1.AuthenticateResponse")
 	proto.RegisterType((*SignUpRequest)(nil), "api.accounts.v1.SignUpRequest")
-	proto.RegisterType((*LoginRequest)(nil), "api.accounts.v1.LoginRequest")
-	proto.RegisterType((*UserResponse)(nil), "api.accounts.v1.UserResponse")
+	proto.RegisterType((*AuthenticateRequest)(nil), "api.accounts.v1.AuthenticateRequest")
+	proto.RegisterType((*EmailExistsRequest)(nil), "api.accounts.v1.EmailExistsRequest")
+	proto.RegisterType((*EmailExistsResponse)(nil), "api.accounts.v1.EmailExistsResponse")
+	proto.RegisterType((*RedirectResponse)(nil), "api.accounts.v1.RedirectResponse")
+	proto.RegisterType((*AccountResponse)(nil), "api.accounts.v1.AccountResponse")
+	proto.RegisterType((*IntrospectRequest)(nil), "api.accounts.v1.IntrospectRequest")
+	proto.RegisterType((*IntrospectResponse)(nil), "api.accounts.v1.IntrospectResponse")
 }
 
 func init() { proto.RegisterFile("accounts/v1/accounts.proto", fileDescriptor_8726aced901bdecf) }
 
 var fileDescriptor_8726aced901bdecf = []byte{
-	// 460 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x53, 0xc1, 0x6e, 0xd3, 0x40,
-	0x10, 0x95, 0xdd, 0x26, 0x4d, 0x86, 0xb4, 0x41, 0x4b, 0x5a, 0x59, 0x6e, 0x8b, 0xd0, 0x22, 0x24,
-	0x7a, 0xb1, 0xd5, 0x72, 0xe2, 0x58, 0x24, 0x0e, 0x48, 0x08, 0xa1, 0x94, 0x5e, 0xb8, 0x54, 0xc3,
-	0x66, 0xe2, 0xac, 0xb0, 0x77, 0x17, 0xef, 0x3a, 0x88, 0x2b, 0x7c, 0x02, 0x7f, 0xc4, 0x2f, 0x70,
-	0xe6, 0xc6, 0x87, 0xa0, 0x6c, 0xec, 0xe0, 0xd6, 0x41, 0xdc, 0x3c, 0xef, 0x3d, 0xbf, 0x99, 0xd1,
-	0xbc, 0x85, 0x18, 0x85, 0xd0, 0x95, 0x72, 0x36, 0x5d, 0x9e, 0xa7, 0xcd, 0x77, 0x62, 0x4a, 0xed,
-	0x34, 0x1b, 0xa3, 0x91, 0xc9, 0x06, 0x5b, 0x9e, 0xc7, 0x27, 0x99, 0xd6, 0x59, 0x4e, 0x29, 0x1a,
-	0x99, 0xa2, 0x52, 0xda, 0xa1, 0x93, 0x5a, 0xd5, 0xf2, 0x38, 0x6a, 0x5b, 0x59, 0xb1, 0xa0, 0x02,
-	0xd7, 0x0c, 0xdf, 0x83, 0xde, 0xcb, 0xc2, 0xb8, 0x2f, 0x3c, 0x81, 0xc9, 0x65, 0xe5, 0x16, 0xa4,
-	0x9c, 0x14, 0xe8, 0x68, 0x4a, 0xd6, 0x68, 0x65, 0x89, 0x1d, 0x41, 0xdf, 0x3a, 0x74, 0x95, 0x8d,
-	0x82, 0x47, 0xc1, 0xd3, 0xc1, 0xb4, 0xae, 0xf8, 0xaf, 0x00, 0xf6, 0xaf, 0x64, 0xa6, 0xae, 0xcd,
-	0x94, 0x3e, 0x55, 0x64, 0x1d, 0x3b, 0x05, 0x98, 0xcb, 0xd2, 0xba, 0x1b, 0x85, 0x05, 0x79, 0xf5,
-	0x70, 0x3a, 0xf4, 0xc8, 0x1b, 0x2c, 0x88, 0x1d, 0xc3, 0x30, 0xc7, 0x86, 0x0d, 0x3d, 0x3b, 0x58,
-	0x01, 0x9e, 0x9c, 0x40, 0x8f, 0x0a, 0x94, 0x79, 0xb4, 0xe3, 0x89, 0x75, 0xc1, 0x62, 0x18, 0x18,
-	0xb4, 0xf6, 0xb3, 0x2e, 0x67, 0xd1, 0xee, 0xfa, 0x8f, 0xa6, 0x66, 0x67, 0x70, 0x5f, 0x68, 0x35,
-	0x97, 0x65, 0x71, 0xb3, 0xd1, 0xf4, 0xbc, 0x66, 0x5c, 0xe3, 0x6f, 0x1b, 0xe9, 0x63, 0xd8, 0x17,
-	0x68, 0x9c, 0x58, 0xe0, 0x8d, 0xd3, 0x1f, 0x49, 0x45, 0x7d, 0xaf, 0x1b, 0xd5, 0xe0, 0xbb, 0x15,
-	0xc6, 0x0e, 0x20, 0x94, 0x26, 0xda, 0xf3, 0x4c, 0x28, 0x0d, 0xff, 0x16, 0xc0, 0xe8, 0xb5, 0xce,
-	0xa4, 0x6a, 0xd6, 0xdb, 0x8c, 0x18, 0xfc, 0x6b, 0xc4, 0xf0, 0xce, 0x88, 0x9d, 0xbe, 0x3b, 0x5b,
-	0xfa, 0x9e, 0xc0, 0x50, 0x2c, 0x30, 0xcf, 0x49, 0x65, 0x54, 0x2f, 0xf9, 0x17, 0xe0, 0xcf, 0x61,
-	0x74, 0x6d, 0xa9, 0xdc, 0x5c, 0xe3, 0x0c, 0x76, 0x2b, 0x4b, 0xa5, 0x9f, 0xe1, 0xde, 0xc5, 0x61,
-	0x72, 0x27, 0x06, 0x89, 0x17, 0x7b, 0xc9, 0xc5, 0x8f, 0x10, 0xc6, 0x97, 0x35, 0x75, 0x45, 0xe5,
-	0x52, 0x0a, 0x62, 0x73, 0x18, 0xbf, 0xb2, 0xed, 0x33, 0xcf, 0xd8, 0x51, 0xc7, 0xc3, 0xe7, 0x21,
-	0x7e, 0xd2, 0xc1, 0xb7, 0xc5, 0x83, 0x4f, 0xbe, 0xfe, 0xfc, 0xfd, 0x3d, 0x3c, 0xe0, 0xa3, 0x76,
-	0x48, 0xd9, 0x0c, 0xfa, 0xeb, 0x6c, 0xb0, 0x87, 0x1d, 0x9b, 0x5b, 0xa1, 0x89, 0x4f, 0xb7, 0xaf,
-	0xd0, 0xd8, 0x1f, 0x7b, 0xfb, 0x43, 0xfe, 0xa0, 0x6d, 0x9f, 0x5a, 0x99, 0xa9, 0xca, 0x30, 0x84,
-	0x9e, 0xbf, 0x10, 0xeb, 0x9a, 0xb4, 0x2f, 0xf7, 0xbf, 0x1e, 0xb1, 0xef, 0x31, 0xe1, 0xec, 0x56,
-	0x8f, 0x7c, 0xe5, 0xf0, 0x02, 0xde, 0x0f, 0x1a, 0xe4, 0x43, 0xdf, 0xbf, 0x98, 0x67, 0x7f, 0x02,
-	0x00, 0x00, 0xff, 0xff, 0x9b, 0x9a, 0x1b, 0xeb, 0x98, 0x03, 0x00, 0x00,
+	// 878 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x55, 0xdd, 0x8e, 0xdb, 0x44,
+	0x14, 0xae, 0xf3, 0xb3, 0x9b, 0x9c, 0xcd, 0x76, 0xb7, 0xb3, 0x4b, 0x65, 0xbc, 0x05, 0xd2, 0xd9,
+	0x22, 0x2d, 0x20, 0x12, 0x95, 0x3e, 0x00, 0x6a, 0xab, 0x95, 0x88, 0x84, 0x2a, 0xe4, 0x6c, 0x55,
+	0x89, 0x1b, 0x6b, 0x62, 0x4f, 0x92, 0xa1, 0xce, 0x8c, 0xf1, 0x8c, 0x43, 0xd3, 0x4b, 0x5e, 0x81,
+	0x97, 0xe0, 0x15, 0x90, 0xb8, 0xe7, 0x01, 0xb8, 0xe2, 0x9e, 0x07, 0x41, 0xf3, 0x63, 0xc7, 0x49,
+	0xba, 0x61, 0xef, 0xce, 0xf9, 0xe6, 0x78, 0xbe, 0xf3, 0x9d, 0x73, 0xe6, 0x18, 0x02, 0x12, 0xc7,
+	0xa2, 0xe0, 0x4a, 0x0e, 0x97, 0x4f, 0x87, 0xa5, 0x3d, 0xc8, 0x72, 0xa1, 0x04, 0x3a, 0x21, 0x19,
+	0x1b, 0x54, 0xd8, 0xf2, 0x69, 0xf0, 0x68, 0x26, 0xc4, 0x2c, 0xa5, 0x43, 0x92, 0xb1, 0x21, 0xe1,
+	0x5c, 0x28, 0xa2, 0x98, 0xe0, 0x2e, 0x3c, 0xf0, 0xeb, 0x57, 0xc9, 0x78, 0x4e, 0x17, 0xc4, 0x9e,
+	0xe0, 0x43, 0x68, 0x5f, 0x2f, 0x32, 0xb5, 0xc2, 0x7d, 0x68, 0xbd, 0x10, 0xc9, 0x0a, 0xf9, 0x70,
+	0x98, 0x91, 0x55, 0x2a, 0x48, 0xe2, 0x7b, 0x7d, 0xef, 0xaa, 0x17, 0x96, 0x2e, 0xfe, 0xd3, 0x83,
+	0xe3, 0xef, 0x56, 0x49, 0x4e, 0x42, 0x2a, 0x33, 0xc1, 0x25, 0x45, 0x8f, 0xa0, 0x1b, 0xcf, 0x49,
+	0x9a, 0x52, 0x3e, 0xa3, 0x26, 0xba, 0x1b, 0xae, 0x01, 0xf4, 0x19, 0x1c, 0xe5, 0xf4, 0xe7, 0x82,
+	0x4a, 0x15, 0x15, 0x79, 0xea, 0x37, 0xcc, 0x39, 0x38, 0xe8, 0x75, 0x9e, 0xa2, 0x4f, 0x00, 0x24,
+	0x95, 0x92, 0x09, 0x1e, 0xb1, 0xc4, 0x6f, 0xda, 0xef, 0x1d, 0x32, 0x4a, 0x10, 0x82, 0x96, 0x7c,
+	0xcb, 0x32, 0xbf, 0xd5, 0xf7, 0xae, 0x3a, 0xa1, 0xb1, 0x75, 0x76, 0xb2, 0x98, 0xfc, 0x44, 0x63,
+	0xe5, 0xb7, 0x4d, 0x7c, 0xe9, 0x5a, 0xb6, 0x84, 0xe5, 0x34, 0x56, 0x91, 0x12, 0xfe, 0x41, 0xc9,
+	0x66, 0xa1, 0x1b, 0x81, 0x07, 0x70, 0xfe, 0xbc, 0x50, 0x73, 0xca, 0x15, 0x8b, 0x89, 0xa2, 0x95,
+	0x88, 0x87, 0x70, 0x20, 0x15, 0x51, 0x85, 0x34, 0x0a, 0x3a, 0xa1, 0xf3, 0xf0, 0xef, 0x1e, 0x1c,
+	0x8f, 0xd9, 0x8c, 0xbf, 0xce, 0x42, 0x9b, 0xb2, 0xce, 0x77, 0xca, 0x72, 0xa9, 0x22, 0x4e, 0x16,
+	0x95, 0x5e, 0x83, 0xbc, 0x22, 0x0b, 0x8a, 0x2e, 0xa0, 0x9b, 0x92, 0xf2, 0xd4, 0xaa, 0xed, 0x68,
+	0xc0, 0x1c, 0x9e, 0x43, 0x9b, 0x2e, 0x08, 0x4b, 0x9d, 0x4c, 0xeb, 0xa0, 0x00, 0x3a, 0x19, 0x91,
+	0xf2, 0x17, 0x91, 0x27, 0x46, 0x66, 0x37, 0xac, 0x7c, 0xf4, 0x05, 0x9c, 0xc6, 0x82, 0x4f, 0x59,
+	0xbe, 0x88, 0xaa, 0x18, 0xab, 0xf9, 0xc4, 0xe1, 0x3f, 0x38, 0x18, 0xa7, 0x70, 0xb6, 0x29, 0xcd,
+	0xe6, 0x5b, 0x71, 0x7a, 0xb7, 0x71, 0x36, 0xb6, 0x38, 0x2f, 0xe1, 0x38, 0x26, 0x99, 0x8a, 0xe7,
+	0x24, 0x52, 0xe2, 0x2d, 0xe5, 0x2e, 0xdb, 0x9e, 0x03, 0x6f, 0x34, 0x86, 0xbf, 0x04, 0x74, 0xad,
+	0x6f, 0xba, 0x7e, 0xc7, 0xa4, 0x92, 0x7b, 0xc9, 0xf0, 0x57, 0x70, 0xb6, 0x11, 0xeb, 0x6a, 0xae,
+	0x83, 0x35, 0xe2, 0x4a, 0x6e, 0x1d, 0xfc, 0x0c, 0x4e, 0x43, 0xd7, 0xaf, 0x2a, 0x72, 0xab, 0xad,
+	0xde, 0x4e, 0x5b, 0xff, 0xf0, 0xe0, 0xe4, 0xb9, 0x9d, 0xee, 0xea, 0xa3, 0xfb, 0xd0, 0x60, 0x89,
+	0x8b, 0x6d, 0xb0, 0x44, 0xb7, 0x58, 0xd8, 0xa1, 0xb1, 0x82, 0x9d, 0x77, 0x4b, 0x53, 0x36, 0xdb,
+	0xdc, 0xda, 0xdb, 0xe6, 0xf6, 0x56, 0x9b, 0x11, 0xb4, 0x0c, 0x6e, 0xc7, 0xcf, 0xd8, 0xe6, 0x45,
+	0xb1, 0x58, 0x15, 0x39, 0xf5, 0x0f, 0xed, 0xcc, 0x3a, 0x17, 0x7f, 0x0b, 0x0f, 0x46, 0x5c, 0xe5,
+	0x42, 0x66, 0x46, 0x72, 0x55, 0x48, 0x5b, 0x7b, 0x57, 0x48, 0xe3, 0x68, 0x54, 0xc6, 0x22, 0x2b,
+	0x07, 0xcb, 0x3a, 0xf8, 0xaf, 0x06, 0xa0, 0xfa, 0x0d, 0xeb, 0x91, 0x26, 0xb1, 0x62, 0x4b, 0x5a,
+	0x8e, 0xb4, 0xf5, 0xd0, 0x29, 0x34, 0x49, 0xa1, 0xbb, 0xde, 0xbc, 0xea, 0x86, 0xda, 0xd4, 0x62,
+	0xe2, 0x94, 0x51, 0xae, 0xd6, 0x2f, 0xb0, 0x63, 0x81, 0x51, 0xa2, 0xc3, 0xe9, 0x3b, 0xfb, 0xfe,
+	0x9a, 0xa1, 0x36, 0x2d, 0x62, 0x9f, 0x5e, 0x4f, 0x23, 0x4a, 0x23, 0x8c, 0x28, 0xa3, 0xb7, 0x19,
+	0x6a, 0xd3, 0x20, 0x52, 0x3a, 0xa9, 0xda, 0xd4, 0x08, 0x9f, 0x4c, 0xfd, 0x8e, 0x8d, 0xe1, 0x93,
+	0x29, 0xfa, 0x1a, 0x90, 0x98, 0x4c, 0x0b, 0xa9, 0xa7, 0x35, 0x89, 0xca, 0x17, 0xdd, 0x35, 0x9f,
+	0x3c, 0x58, 0x9f, 0x8c, 0x8b, 0xaa, 0x4f, 0x56, 0x3c, 0xd4, 0xc4, 0xeb, 0x6b, 0x65, 0x31, 0xf1,
+	0x8f, 0x2c, 0x91, 0x2c, 0x26, 0xba, 0x73, 0xa6, 0x5a, 0x91, 0x5a, 0x65, 0xd4, 0xef, 0xd9, 0xce,
+	0x19, 0xe4, 0x66, 0x95, 0x51, 0x3d, 0xf9, 0x85, 0xa4, 0xb9, 0x69, 0xd0, 0xb1, 0xd5, 0x5a, 0xfa,
+	0xdf, 0xfc, 0xd3, 0xae, 0xc6, 0x48, 0x8e, 0x69, 0xbe, 0x64, 0x31, 0x45, 0xaf, 0x00, 0x7d, 0x2f,
+	0x66, 0x8c, 0xbf, 0x61, 0x6a, 0xfe, 0xb2, 0x5a, 0x6b, 0x0f, 0x07, 0x5b, 0xbb, 0x77, 0x60, 0x16,
+	0x68, 0xf0, 0xe9, 0x0e, 0xbe, 0xb1, 0x2c, 0xf1, 0x3d, 0x34, 0x86, 0xf3, 0x97, 0xda, 0xe4, 0xea,
+	0x6e, 0x37, 0x3e, 0xde, 0xc1, 0xb7, 0x9f, 0x07, 0xbe, 0x87, 0xde, 0x00, 0xac, 0x27, 0x00, 0xe1,
+	0x9d, 0x4f, 0x76, 0x06, 0x2c, 0xb8, 0xdc, 0x1b, 0x53, 0x5d, 0x3c, 0x85, 0x93, 0x91, 0xac, 0xaf,
+	0x95, 0xe4, 0xd6, 0x44, 0x3f, 0xdf, 0xc1, 0x3f, 0xb4, 0x69, 0xf1, 0xf9, 0xaf, 0x7f, 0xff, 0xfb,
+	0x5b, 0xe3, 0x3e, 0xee, 0xd5, 0x7f, 0x68, 0x68, 0x0e, 0x07, 0x76, 0xcd, 0xa2, 0xdd, 0x0a, 0x6e,
+	0xec, 0xdf, 0xbb, 0xd4, 0xe3, 0xc2, 0x50, 0x7c, 0x84, 0xcf, 0xea, 0x14, 0x43, 0xc9, 0x66, 0xbc,
+	0xc8, 0xd0, 0x7b, 0xe8, 0xd5, 0xf3, 0x42, 0x4f, 0xfe, 0x27, 0xed, 0x3b, 0xb3, 0x3e, 0x36, 0xac,
+	0x17, 0xf8, 0xe3, 0x0d, 0x56, 0x52, 0xe7, 0x7a, 0x0f, 0x47, 0xb5, 0x45, 0x88, 0x2e, 0x3f, 0x50,
+	0xc9, 0xed, 0x95, 0x1a, 0x3c, 0xd9, 0x1f, 0xe4, 0xc8, 0xfb, 0x86, 0x3c, 0xc0, 0xfe, 0x06, 0xb9,
+	0x59, 0x65, 0x43, 0xb3, 0x57, 0x5f, 0xc0, 0x8f, 0x9d, 0x12, 0x9f, 0x1c, 0x98, 0xdf, 0xfe, 0xb3,
+	0xff, 0x02, 0x00, 0x00, 0xff, 0xff, 0x7d, 0x08, 0xbe, 0x57, 0x5d, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -339,9 +813,13 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type AccountsServiceClient interface {
+	LoginWithChallenge(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*HydraResponse, error)
+	ConsentWithChallenge(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*RedirectResponse, error)
+	Introspect(ctx context.Context, in *IntrospectRequest, opts ...grpc.CallOption) (*IntrospectResponse, error)
 	IsAuthenticated(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AuthenticateResponse, error)
-	SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*UserResponse, error)
-	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*UserResponse, error)
+	SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*RedirectResponse, error)
+	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*RedirectResponse, error)
+	EmailExists(ctx context.Context, in *EmailExistsRequest, opts ...grpc.CallOption) (*EmailExistsResponse, error)
 }
 
 type accountsServiceClient struct {
@@ -350,6 +828,33 @@ type accountsServiceClient struct {
 
 func NewAccountsServiceClient(cc *grpc.ClientConn) AccountsServiceClient {
 	return &accountsServiceClient{cc}
+}
+
+func (c *accountsServiceClient) LoginWithChallenge(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*HydraResponse, error) {
+	out := new(HydraResponse)
+	err := c.cc.Invoke(ctx, "/api.accounts.v1.AccountsService/LoginWithChallenge", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountsServiceClient) ConsentWithChallenge(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*RedirectResponse, error) {
+	out := new(RedirectResponse)
+	err := c.cc.Invoke(ctx, "/api.accounts.v1.AccountsService/ConsentWithChallenge", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountsServiceClient) Introspect(ctx context.Context, in *IntrospectRequest, opts ...grpc.CallOption) (*IntrospectResponse, error) {
+	out := new(IntrospectResponse)
+	err := c.cc.Invoke(ctx, "/api.accounts.v1.AccountsService/Introspect", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *accountsServiceClient) IsAuthenticated(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
@@ -361,8 +866,8 @@ func (c *accountsServiceClient) IsAuthenticated(ctx context.Context, in *Empty, 
 	return out, nil
 }
 
-func (c *accountsServiceClient) SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*UserResponse, error) {
-	out := new(UserResponse)
+func (c *accountsServiceClient) SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*RedirectResponse, error) {
+	out := new(RedirectResponse)
 	err := c.cc.Invoke(ctx, "/api.accounts.v1.AccountsService/SignUp", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -370,9 +875,18 @@ func (c *accountsServiceClient) SignUp(ctx context.Context, in *SignUpRequest, o
 	return out, nil
 }
 
-func (c *accountsServiceClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*UserResponse, error) {
-	out := new(UserResponse)
-	err := c.cc.Invoke(ctx, "/api.accounts.v1.AccountsService/Login", in, out, opts...)
+func (c *accountsServiceClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*RedirectResponse, error) {
+	out := new(RedirectResponse)
+	err := c.cc.Invoke(ctx, "/api.accounts.v1.AccountsService/Authenticate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountsServiceClient) EmailExists(ctx context.Context, in *EmailExistsRequest, opts ...grpc.CallOption) (*EmailExistsResponse, error) {
+	out := new(EmailExistsResponse)
+	err := c.cc.Invoke(ctx, "/api.accounts.v1.AccountsService/EmailExists", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -381,27 +895,97 @@ func (c *accountsServiceClient) Login(ctx context.Context, in *LoginRequest, opt
 
 // AccountsServiceServer is the server API for AccountsService service.
 type AccountsServiceServer interface {
+	LoginWithChallenge(context.Context, *Empty) (*HydraResponse, error)
+	ConsentWithChallenge(context.Context, *Empty) (*RedirectResponse, error)
+	Introspect(context.Context, *IntrospectRequest) (*IntrospectResponse, error)
 	IsAuthenticated(context.Context, *Empty) (*AuthenticateResponse, error)
-	SignUp(context.Context, *SignUpRequest) (*UserResponse, error)
-	Login(context.Context, *LoginRequest) (*UserResponse, error)
+	SignUp(context.Context, *SignUpRequest) (*RedirectResponse, error)
+	Authenticate(context.Context, *AuthenticateRequest) (*RedirectResponse, error)
+	EmailExists(context.Context, *EmailExistsRequest) (*EmailExistsResponse, error)
 }
 
 // UnimplementedAccountsServiceServer can be embedded to have forward compatible implementations.
 type UnimplementedAccountsServiceServer struct {
 }
 
+func (*UnimplementedAccountsServiceServer) LoginWithChallenge(ctx context.Context, req *Empty) (*HydraResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginWithChallenge not implemented")
+}
+func (*UnimplementedAccountsServiceServer) ConsentWithChallenge(ctx context.Context, req *Empty) (*RedirectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConsentWithChallenge not implemented")
+}
+func (*UnimplementedAccountsServiceServer) Introspect(ctx context.Context, req *IntrospectRequest) (*IntrospectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Introspect not implemented")
+}
 func (*UnimplementedAccountsServiceServer) IsAuthenticated(ctx context.Context, req *Empty) (*AuthenticateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsAuthenticated not implemented")
 }
-func (*UnimplementedAccountsServiceServer) SignUp(ctx context.Context, req *SignUpRequest) (*UserResponse, error) {
+func (*UnimplementedAccountsServiceServer) SignUp(ctx context.Context, req *SignUpRequest) (*RedirectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignUp not implemented")
 }
-func (*UnimplementedAccountsServiceServer) Login(ctx context.Context, req *LoginRequest) (*UserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
+func (*UnimplementedAccountsServiceServer) Authenticate(ctx context.Context, req *AuthenticateRequest) (*RedirectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Authenticate not implemented")
+}
+func (*UnimplementedAccountsServiceServer) EmailExists(ctx context.Context, req *EmailExistsRequest) (*EmailExistsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EmailExists not implemented")
 }
 
 func RegisterAccountsServiceServer(s *grpc.Server, srv AccountsServiceServer) {
 	s.RegisterService(&_AccountsService_serviceDesc, srv)
+}
+
+func _AccountsService_LoginWithChallenge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountsServiceServer).LoginWithChallenge(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.accounts.v1.AccountsService/LoginWithChallenge",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountsServiceServer).LoginWithChallenge(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccountsService_ConsentWithChallenge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountsServiceServer).ConsentWithChallenge(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.accounts.v1.AccountsService/ConsentWithChallenge",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountsServiceServer).ConsentWithChallenge(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccountsService_Introspect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IntrospectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountsServiceServer).Introspect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.accounts.v1.AccountsService/Introspect",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountsServiceServer).Introspect(ctx, req.(*IntrospectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _AccountsService_IsAuthenticated_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -440,20 +1024,38 @@ func _AccountsService_SignUp_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AccountsService_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LoginRequest)
+func _AccountsService_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthenticateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AccountsServiceServer).Login(ctx, in)
+		return srv.(AccountsServiceServer).Authenticate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.accounts.v1.AccountsService/Login",
+		FullMethod: "/api.accounts.v1.AccountsService/Authenticate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountsServiceServer).Login(ctx, req.(*LoginRequest))
+		return srv.(AccountsServiceServer).Authenticate(ctx, req.(*AuthenticateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccountsService_EmailExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmailExistsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountsServiceServer).EmailExists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.accounts.v1.AccountsService/EmailExists",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountsServiceServer).EmailExists(ctx, req.(*EmailExistsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -463,6 +1065,18 @@ var _AccountsService_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*AccountsServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "LoginWithChallenge",
+			Handler:    _AccountsService_LoginWithChallenge_Handler,
+		},
+		{
+			MethodName: "ConsentWithChallenge",
+			Handler:    _AccountsService_ConsentWithChallenge_Handler,
+		},
+		{
+			MethodName: "Introspect",
+			Handler:    _AccountsService_Introspect_Handler,
+		},
+		{
 			MethodName: "IsAuthenticated",
 			Handler:    _AccountsService_IsAuthenticated_Handler,
 		},
@@ -471,8 +1085,12 @@ var _AccountsService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _AccountsService_SignUp_Handler,
 		},
 		{
-			MethodName: "Login",
-			Handler:    _AccountsService_Login_Handler,
+			MethodName: "Authenticate",
+			Handler:    _AccountsService_Authenticate_Handler,
+		},
+		{
+			MethodName: "EmailExists",
+			Handler:    _AccountsService_EmailExists_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

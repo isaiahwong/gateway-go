@@ -13,7 +13,7 @@ COPY . .
 
 RUN go run main.go -b
 
-WORKDIR /gateway/cmd/gateway
+WORKDIR /gateway/gateway
 # Build the binary
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o /go/bin/gateway
 

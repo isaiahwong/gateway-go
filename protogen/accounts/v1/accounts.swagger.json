@@ -27,14 +27,30 @@
         ]
       }
     },
-    "/v1/accounts/login": {
+    "/v1/accounts/authenticate": {
       "post": {
-        "operationId": "Login",
+        "operationId": "Authenticate",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1UserResponse"
+              "$ref": "#/definitions/v1RedirectResponse"
+            }
+          }
+        },
+        "tags": [
+          "AccountsService"
+        ]
+      }
+    },
+    "/v1/accounts/email/exist": {
+      "post": {
+        "operationId": "EmailExists",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1EmailExistsResponse"
             }
           }
         },
@@ -50,7 +66,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1UserResponse"
+              "$ref": "#/definitions/v1RedirectResponse"
             }
           }
         },
@@ -61,89 +77,6 @@
     }
   },
   "definitions": {
-    "PreferencesEmailNotifications": {
-      "type": "object",
-      "properties": {
-        "unsubscribe_from_all": {
-          "type": "boolean",
-          "format": "boolean"
-        }
-      }
-    },
-    "PreferencesPushNotifications": {
-      "type": "object",
-      "properties": {
-        "unsubscribe_from_all": {
-          "type": "boolean",
-          "format": "boolean"
-        }
-      }
-    },
-    "v1Auth": {
-      "type": "object",
-      "properties": {
-        "facebook": {
-          "$ref": "#/definitions/v1UserProfileFacebook"
-        },
-        "google": {
-          "$ref": "#/definitions/v1UserProfileGoogle"
-        },
-        "email": {
-          "type": "string"
-        },
-        "first_name": {
-          "type": "string"
-        },
-        "last_name": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "picture": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        },
-        "password_hash_method": {
-          "type": "string"
-        },
-        "password_reset_id": {
-          "type": "string"
-        },
-        "password_reset_token": {
-          "type": "string"
-        },
-        "password_reset_expires": {
-          "type": "string",
-          "format": "int64"
-        },
-        "password_modified": {
-          "type": "string",
-          "format": "int64"
-        },
-        "verified": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "verified_date": {
-          "type": "string",
-          "format": "int64"
-        },
-        "verification_token": {
-          "type": "string"
-        },
-        "verification_token_expires": {
-          "type": "string",
-          "format": "int64"
-        },
-        "captcha_challenge_ts": {
-          "type": "string",
-          "format": "int64"
-        }
-      }
-    },
     "v1AuthenticateResponse": {
       "type": "object",
       "properties": {
@@ -153,175 +86,96 @@
         }
       }
     },
-    "v1Preferences": {
+    "v1EmailExistsResponse": {
       "type": "object",
       "properties": {
-        "language": {
-          "type": "string"
-        },
-        "email_notifications": {
-          "$ref": "#/definitions/PreferencesEmailNotifications"
-        },
-        "push_notifications": {
-          "$ref": "#/definitions/PreferencesPushNotifications"
+        "exist": {
+          "type": "boolean",
+          "format": "boolean"
         }
-      },
-      "title": "Preferences"
+      }
     },
-    "v1ProfileEmails": {
+    "v1HydraResponse": {
       "type": "object",
       "properties": {
-        "value": {
+        "challenge": {
           "type": "string"
         },
-        "type": {
+        "request_url": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "skip": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "redirect_to": {
           "type": "string"
         }
       }
     },
-    "v1ProfileName": {
+    "v1IntrospectResponse": {
       "type": "object",
       "properties": {
-        "family_name": {
+        "active": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "aud": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "client_id": {
           "type": "string"
         },
-        "given_name": {
-          "type": "string"
-        },
-        "middle_name": {
-          "type": "string"
-        }
-      }
-    },
-    "v1ProfilePhotos": {
-      "type": "object",
-      "properties": {
-        "value": {
-          "type": "string"
-        }
-      }
-    },
-    "v1Session": {
-      "type": "object",
-      "properties": {
-        "ip": {
-          "type": "string"
-        },
-        "timestamp": {
+        "exp": {
           "type": "string",
           "format": "int64"
         },
-        "location": {
-          "type": "string"
+        "ext": {
+          "type": "string",
+          "format": "byte"
         },
-        "lat": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "long": {
-          "type": "integer",
-          "format": "int32"
-        }
-      }
-    },
-    "v1User": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "object": {
-          "type": "string"
-        },
-        "auth": {
-          "$ref": "#/definitions/v1Auth"
-        },
-        "preferences": {
-          "$ref": "#/definitions/v1Preferences"
-        },
-        "created_at": {
+        "iat": {
           "type": "string",
           "format": "int64"
         },
-        "updated_at": {
+        "iss": {
+          "type": "string"
+        },
+        "nbf": {
           "type": "string",
           "format": "int64"
         },
-        "logged_in": {
-          "type": "string",
-          "format": "int64"
+        "obfuscated_subject": {
+          "type": "string"
         },
-        "sessions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Session"
-          }
+        "scope": {
+          "type": "string"
+        },
+        "sub": {
+          "type": "string"
+        },
+        "token_type": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
         }
       }
     },
-    "v1UserProfileFacebook": {
+    "v1RedirectResponse": {
       "type": "object",
       "properties": {
-        "provider": {
+        "redirect_to": {
           "type": "string"
-        },
-        "id": {
-          "type": "string"
-        },
-        "display_name": {
-          "type": "string"
-        },
-        "name": {
-          "$ref": "#/definitions/v1ProfileName"
-        },
-        "emails": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ProfileEmails"
-          }
-        },
-        "photos": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ProfilePhotos"
-          }
-        }
-      }
-    },
-    "v1UserProfileGoogle": {
-      "type": "object",
-      "properties": {
-        "provider": {
-          "type": "string"
-        },
-        "id": {
-          "type": "string"
-        },
-        "display_name": {
-          "type": "string"
-        },
-        "name": {
-          "$ref": "#/definitions/v1ProfileName"
-        },
-        "emails": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ProfileEmails"
-          }
-        },
-        "photos": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ProfilePhotos"
-          }
-        }
-      }
-    },
-    "v1UserResponse": {
-      "type": "object",
-      "properties": {
-        "user": {
-          "$ref": "#/definitions/v1User"
         }
       }
     }

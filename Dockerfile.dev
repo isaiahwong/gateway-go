@@ -13,4 +13,4 @@ COPY internal ./internal
 COPY protogen ./protogen
 COPY .env .
 
-CMD ["go", "run", "cmd/gateway/main.go"]
+CMD ["go", "run", "cmd/main.go"]

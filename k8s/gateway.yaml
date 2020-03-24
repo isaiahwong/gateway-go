@@ -29,13 +29,18 @@ metadata:
   name: gateway-env-configmap
   namespace: default
 data:
-  APP_ENV: 'development'
-  PORT: '5000'
+  APP_ENV: "development"
+  ADDRESS: ":5000"
 
-  WEBHOOK_PORT: '8443'
+  WEBHOOK_ADDRESS: ":8443"
+  WEBHOOK_KEY_DIR: "/run/secrets/tls/tls.key"
+  WEBHOOK_CERT_DIR: "/run/secrets/tls/tls.crt"
 
-  DISABLE_K8S_CLIENT: 'false'
-  ENABLE_STACKDRIVER: 'false'
+  ACCOUNTS_ADDRESS: "api-accounts-v1-accountsservice.default.svc.cluster.local:5000"
+  ACCOUNTS_TIMEOUT: "10"
+
+  DISABLE_K8S_CLIENT: "false"
+  ENABLE_STACKDRIVER: "false"
 
 ---
 # Gateway Deployment
@@ -106,9 +111,9 @@ metadata:
   namespace: default
   name: api-gateway
 rules:
-  - apiGroups: ['', 'extensions', 'apps']
-    resources: ['services', 'namespaces']
-    verbs: ['get', 'list']
+  - apiGroups: ["", "extensions", "apps"]
+    resources: ["services", "namespaces"]
+    verbs: ["get", "list"]
 
 ---
 # Role Binding
@@ -142,13 +147,13 @@ webhooks:
       service:
         name: gateway-service
         namespace: default
-        path: '/admission'
+        path: "/admission"
       caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNzRENDQVpnQ0NRRFVUS0g1bWpQN2pEQU5CZ2txaGtpRzl3MEJBUXNGQURBYU1SZ3dGZ1lEVlFRS0RBOW4KWVhSbGQyRjVMWE5sY25acFkyVXdIaGNOTWpBd016RXpNREl5TnpJMldoY05NekF3TXpFeE1ESXlOekkyV2pBYQpNUmd3RmdZRFZRUUtEQTluWVhSbGQyRjVMWE5sY25acFkyVXdnZ0VpTUEwR0NTcUdTSWIzRFFFQkFRVUFBNElCCkR3QXdnZ0VLQW9JQkFRREgwTnN6dkczNWQ5RnpXUUltbmo3ZUFTQXQvbllEMVN4cDBGekZIbG9xTWRmbVpsZnMKckc1ekVyTW5QQU5yeW9qRm9WU0ExM0tCVXhFdmtaZWlvR21MdjJ3eWtYQlpzV2w1Nlc1NVJSSmdoVDVYSERXdAp3UEUvVGZLSDdrdzl4azJMNjJTWXpOM1hjTVFBYmlIQ0UwNjd1dnlrelB1WGdiWFlnaFZ2M3VRRHN1dlFqbFI4ClNPRVdtcXhYOW0ydS83bTU0emFaVVhIVXA4c3RkdWljb2J1U1AxVTNYUmZsUHJNU3haQjdLb0FKUzBJQ1l5dWEKUTNvUmNMbEZBWkM0emhuaUEwTGsvcWkySUJvUW45VDBQUE90ZnJLdU1lVjc1TEk3aTFVZUlVc1hNSW1lSXdVKwpzektHbTBCTnJVNDdoOWFYUCtxZVdwMTNUU05VdlV1UFN6UXZBZ01CQUFFd0RRWUpLb1pJaHZjTkFRRUxCUUFECmdnRUJBRjArMDYxaStIVTVORmRUc3RhUTZGREgra3ZHRWttNHBSZ01iYzFXY2diWGpoTEdhZnBITDdWQU53OXMKcjI2dFh2UktRaDhDR21iQVM1ckJpM2VBMnRoRnNXb1RKQnNQU0dTa2VaM0pPNUNxcU12OFRyZ2xVcytYNFdaagpod2xuaXNtWFRDZm5JM1pjNUNaRUNUdDhFY2xML1RKMlR5MGpVTFBlTkhpWWxHZmJMOHpMN0RDVDFVTmo2L0h2CjZsLzJjNkhkYTRqYXZldElIN2JrNEtiUVpyM3haSWU3NUk3U0VmU0NyaDdQbm9KOEd0TGhiQzViMkdWOUNxck4KSkpYUENtbzhwN21CZ0pPUndwT1ZoRkRwSVZtd2ZMaEFpV09uSVlYcFJVbUhmdXZjbmJFZkxYb1REZlUraXJXMgpYb2ZRTGtlWUVBQ1NVTTBFWCs1d2IxYXN3OTA9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
     rules:
-      - operations: ['*']
-        apiGroups: ['*']
-        apiVersions: ['*']
-        resources: ['services']
+      - operations: ["*"]
+        apiGroups: ["*"]
+        apiVersions: ["*"]
+        resources: ["services"]
 
 ---
 apiVersion: v1

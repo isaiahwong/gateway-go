@@ -41,7 +41,7 @@ func genCode() error {
 }
 
 func server() error {
-	server := buildCmd("go", "run", "cmd/gateway/main.go")
+	server := buildCmd("go", "run", "cmd/main.go")
 	if err := server.Run(); err != nil {
 		return err
 	}

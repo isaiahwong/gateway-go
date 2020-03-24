@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/isaiahwong/gateway-go/internal/k8s"
 	"github.com/isaiahwong/gateway-go/internal/common/log"
+	"github.com/isaiahwong/gateway-go/internal/k8s"
 )
 
 // notFoundMW aka not found middleware

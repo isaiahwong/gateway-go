@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
@@ -17,7 +18,9 @@ import (
 	"github.com/isaiahwong/gateway-go/internal/k8s"
 	"github.com/isaiahwong/gateway-go/internal/k8s/enum"
 	"github.com/isaiahwong/gateway-go/internal/observer"
+	"github.com/isaiahwong/gateway-go/internal/services"
 	"github.com/isaiahwong/gateway-go/protogen"
+	accountsV1 "github.com/isaiahwong/gateway-go/protogen/accounts/v1"
 )
 
 // GatewayServer encapsulates GatewayServer and Observer
@@ -28,19 +31,12 @@ type GatewayServer struct {
 	services   map[string]*k8s.APIService
 	logger     log.Logger
 	k8sClient  *k8s.Client
+	accountSVC accountsV1.AccountsServiceClient
 }
 
 var defaultGatewayOptions = options{
 	logger: log.NewLogger(),
 	addr:   ":5000",
-}
-
-// OnNotify receives events when being triggered
-func (gs *GatewayServer) OnNotify(e observer.Event) {
-	if e.Data == nil || len(e.Data) == 0 {
-		return
-	}
-	gs.directAdmission(e.Data)
 }
 
 func essentialMiddleware(gs *GatewayServer) func(*gin.Engine) {
@@ -81,11 +77,8 @@ func newGrpcMux(ctx context.Context) *runtime.ServeMux {
 }
 
 // newRouter returns a new gin Engine which handles routing for gateway
-func newRouter(prod bool, attachMiddleware ...func(r *gin.Engine)) (*gin.Engine, error) {
+func newRouter(attachMiddleware ...func(r *gin.Engine)) (*gin.Engine, error) {
 	r := gin.New()
-	if prod {
-		gin.SetMode(gin.ReleaseMode)
-	}
 
 	if attachMiddleware == nil {
 		return r, nil
@@ -96,15 +89,73 @@ func newRouter(prod bool, attachMiddleware ...func(r *gin.Engine)) (*gin.Engine,
 	return r, nil
 }
 
-func applyHTTP(r *gin.Engine, path string, route string) error {
+func (gs *GatewayServer) authentication(svc *k8s.APIService, cb gin.HandlerFunc) gin.HandlerFunc {
+	if svc == nil {
+		gs.logger.Errorf("authentication: svc is nil")
+		return func(c *gin.Context) {
+			c.String(500, "Internal Server Error")
+			c.Abort()
+		}
+	}
+	r, ok := svc.Authentication.Required.(bool)
+	if !ok {
+		gs.logger.Warn("authentication: unable to parse %v config.authentication.required to bool. Fall back to not required")
+		r = false
+	}
+	if !r {
+		return cb
+	}
+	return func(c *gin.Context) {
+		em := gin.H{
+			"error":   "invalid_request",
+			"message": "request is malformed",
+		}
+		url := c.Request.URL
+		// Implement exclude
+		for _, e := range svc.Authentication.Exclude {
+			if e == url.String() {
+				cb(c)
+				return
+			}
+		}
+		token := c.Request.Header.Get("Authorization")
+		if token == "" {
+			c.JSON(400, em)
+			c.Abort()
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		// TODO: Include scope
+		ip := c.ClientIP()
+		md := metadata.Pairs("x-forwarded-for", ip)
+		ctx = metadata.NewOutgoingContext(ctx, md)
+		res, err := gs.accountSVC.Introspect(ctx, &accountsV1.IntrospectRequest{Token: token})
+		if err != nil {
+			gs.logger.Errorf("authentication: %v", err)
+			c.JSON(401, em)
+			c.Abort()
+			return
+		}
+		if res.Active {
+			cb(c)
+			return
+		}
+		c.JSON(401, gin.H{
+			"active": "false",
+		})
+	}
+}
+
+func (gs *GatewayServer) applyHTTP(r *gin.Engine, svc *k8s.APIService, target string, route string) error {
 	if r == nil {
 		return InvalidParams("applyHttp: gin r router is nil")
 	}
-	if path == "" {
-		return InvalidParams("applyHttp: path is empty")
+	if target == "" {
+		return InvalidParams("applyHttp: target is empty")
 	}
 	// TODO: Test connectivity
-	rp := ReverseProxy(path)
+	rp := gs.authentication(svc, ReverseProxy(target))
 	// Routes all requests to service
 	r.GET(route, rp)
 	r.POST(route, rp)
@@ -112,9 +163,9 @@ func applyHTTP(r *gin.Engine, path string, route string) error {
 	return nil
 }
 
-func applyGrpc(r *gin.Engine, serviceName string, conn *grpc.ClientConn, target string, route string) error {
+func (gs *GatewayServer) applyGrpc(r *gin.Engine, svc *k8s.APIService, serviceName string, conn *grpc.ClientConn, target string, route string) error {
 	var err error
-	var svc *protogen.ServiceDesc
+	var svcDesc *protogen.ServiceDesc
 	if r == nil {
 		return InvalidParams("r router is nil")
 	}
@@ -130,11 +181,11 @@ func applyGrpc(r *gin.Engine, serviceName string, conn *grpc.ClientConn, target 
 		// Formats it to underscore i.e api_auth_authservice
 		underscore := strings.ToLower(strings.Join(split, "_"))
 		if serviceName == dash || serviceName == underscore {
-			svc = &s
+			svcDesc = &s
 			break
 		}
 	}
-	if svc == nil {
+	if svcDesc == nil {
 		return NotFound("No gw proto generated or found for " + serviceName)
 	}
 	// Create connection
@@ -148,10 +199,11 @@ func applyGrpc(r *gin.Engine, serviceName string, conn *grpc.ClientConn, target 
 	// creates a new mux
 	mux := newGrpcMux(context.Background())
 	// pass mux to grpc handlers
-	svc.Handler(context.Background(), mux, conn)
-	handler := func(c *gin.Context) {
+	svcDesc.Handler(context.Background(), mux, conn)
+	handler := gs.authentication(svc, func(c *gin.Context) {
 		mux.ServeHTTP(c.Writer, c.Request)
-	}
+	})
+
 	r.GET(route, handler)
 	r.POST(route, handler)
 	r.Any(fmt.Sprintf("%v/*any", route), handler)
@@ -163,7 +215,6 @@ func applyGrpc(r *gin.Engine, serviceName string, conn *grpc.ClientConn, target 
 func (gs *GatewayServer) applyRoutes() {
 	// Create new Router
 	r, err := newRouter(
-		gs.production,
 		essentialMiddleware(gs),
 	)
 	if err != nil {
@@ -180,20 +231,20 @@ func (gs *GatewayServer) applyRoutes() {
 			continue
 		}
 		// Iterate exposed ports of services
-		// Test if routes is working
+		// TODO: Test if routes is are alive
 		for _, port := range svc.Ports {
 			switch port.Name {
 			case "http":
+				target := fmt.Sprintf("%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
 				route := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
-				path := fmt.Sprintf("%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
-				err := applyHTTP(r, path, route)
+				err := gs.applyHTTP(r, svc, target, route)
 				if err != nil {
 					gs.logger.Error(err)
 				}
 			case "grpc":
 				target := fmt.Sprintf("%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
-				path := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
-				err := applyGrpc(r, svc.ServiceName, svc.GRPCClientConn, target, path)
+				route := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
+				err := gs.applyGrpc(r, svc, svc.ServiceName, svc.GRPCClientConn, target, route)
 				if err != nil {
 					gs.logger.Error(err)
 				}
@@ -310,6 +361,14 @@ func (gs *GatewayServer) directAdmission(d []byte) {
 	}
 }
 
+// OnNotify receives events when being triggered
+func (gs *GatewayServer) OnNotify(e observer.Event) {
+	if e.Data == nil || len(e.Data) == 0 {
+		return
+	}
+	gs.directAdmission(e.Data)
+}
+
 func (gs *GatewayServer) Gracefully(ctx context.Context) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -331,7 +390,7 @@ func (gs *GatewayServer) Run(ctx context.Context) error {
 	defer cancel()
 
 	go func() {
-		gs.logger.Infof("Running %v on %v\n", gs.Name, gs.Server.Addr)
+		gs.logger.Infof("Running %v on [%v] - Production: %v\n", gs.Name, gs.Server.Addr, gs.production)
 		if err := gs.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			gs.logger.Fatalf("Gateway Server: %s\n", err)
 		}
@@ -347,17 +406,27 @@ func NewGatewayServer(opt ...Option) (*GatewayServer, error) {
 	for _, o := range opt {
 		o(&opts)
 	}
+	// Initialize AccountsService
+	ac, err := services.NewAccountsClient(
+		services.WithAddress(opts.accountsAddr),
+		services.WithTimeout(opts.accountsTimeout),
+	)
+	if err != nil {
+		return nil, err
+	}
 	// Initialize Http Server
 	s := &http.Server{
 		Addr: opts.addr,
 	}
 	// Initialize GatewayServer
 	gs := &GatewayServer{
-		services:  map[string]*k8s.APIService{},
-		Server:    s,
-		Name:      "Gateway Server",
-		logger:    opts.logger,
-		k8sClient: opts.k8sClient,
+		services:   map[string]*k8s.APIService{},
+		Server:     s,
+		Name:       "Gateway Server",
+		logger:     opts.logger,
+		k8sClient:  opts.k8sClient,
+		production: opts.production,
+		accountSVC: ac,
 	}
 	// Initialize K8SClient if nil
 	if opts.k8sClient != nil {

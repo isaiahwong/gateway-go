@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/isaiahwong/gateway-go/internal/common"
 	"github.com/isaiahwong/gateway-go/internal/common/log"
 	"github.com/isaiahwong/gateway-go/internal/k8s"
@@ -38,12 +40,15 @@ type EnvConfig struct {
 	Production       bool
 	Host             string
 	Address          string
+	AccountsAddress  string
 	WebhookAddress   string
 	WebhookSecretKey string
 	DisableK8S       bool
 
 	WebhookKeyDir  string
 	WebhookCertDir string
+
+	AccountsTimeout int
 
 	EnableStackdriver bool
 
@@ -72,14 +77,21 @@ func loadEnv() {
 		fmt.Println(".env not loaded", err)
 	}
 
+	at, err := strconv.Atoi(mapEnvWithDefaults("ACCOUNTS_TIMEOUT", "10"))
+	if err != nil {
+		at = 10
+	}
+
 	config = &EnvConfig{
 		AppEnv:            mapEnvWithDefaults("APP_ENV", "development"),
 		Production:        mapEnvWithDefaults("APP_ENV", "development") == "production",
 		DisableK8S:        mapEnvWithDefaults("DISABLE_K8S_CLIENT", "true") == "true",
 		Address:           mapEnvWithDefaults("ADDRESS", ":5000"),
+		AccountsAddress:   mapEnvWithDefaults("ACCOUNTS_ADDRESS", ":50051"),
 		WebhookAddress:    mapEnvWithDefaults("WEBHOOK_ADDRESS", ":8443"),
 		WebhookKeyDir:     mapEnvWithDefaults("WEBHOOK_KEY_DIR", ""),
 		WebhookCertDir:    mapEnvWithDefaults("WEBHOOK_CERT_DIR", ""),
+		AccountsTimeout:   at,
 		EnableStackdriver: mapEnvWithDefaults("ENABLE_STACKDRIVER", "true") == "true",
 	}
 }
@@ -89,6 +101,10 @@ var logger *logrus.Logger
 func init() {
 	loadEnv()
 	logger = log.NewLogger()
+
+	if config.Production {
+		gin.SetMode(gin.ReleaseMode)
+	}
 }
 
 // Execute the entry point for gateway
@@ -105,12 +121,14 @@ func main() {
 
 	gs, err := server.NewGatewayServer(
 		server.WithAddress(config.Address),
+		server.WithAccountsAddr(config.AccountsAddress),
+		server.WithAccountsTimeout(config.AccountsTimeout),
 		server.WithLogger(logger),
 		server.WithK8SClient(k),
 		server.WithAppEnv(config.Production),
 	)
 	if err != nil {
-		logger.Fatalf("New Gateway error: %v", err)
+		logger.Fatalf("NewGatewayServer: %v", err)
 	}
 
 	ws, err := server.NewWebhook(
@@ -125,18 +143,17 @@ func main() {
 	// Registers gateway as an observer
 	ws.Notifier.Register(gs)
 
-	gc := common.SignalContext(context.Background())
-	wc := common.SignalContext(context.Background())
+	ctx := common.SignalContext(context.Background())
 
 	// Start gateway Server
-	gs.Run(gc)
+	gs.Run(ctx)
 	// Start Webhook server
-	ws.Run(wc)
+	ws.Run(ctx)
 
+	// Terminate all servers
 	select {
-	case <-gc.Done():
-	case <-wc.Done():
-		gs.Gracefully(gc)
-		ws.Gracefully(wc)
+	case <-ctx.Done():
+		gs.Gracefully(ctx)
+		ws.Gracefully(ctx)
 	}
 }

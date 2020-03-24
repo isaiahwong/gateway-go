@@ -44,7 +44,7 @@ type WebhookServer struct {
 	Name       string
 	Server     *http.Server
 	Notifier   *AdmissionNotifier
-	Production bool
+	production bool
 	logger     log.Logger
 	certFile   string
 	keyFile    string
@@ -101,15 +101,15 @@ func (ws *WebhookServer) Run(ctx context.Context) error {
 			cancelTLS = true
 		}
 
-		ws.logger.Infof("Running %v on %v\n", ws.Name, ws.Server.Addr)
+		ws.logger.Infof("Running %v on [%v] - Production: %v\n", ws.Name, ws.Server.Addr, ws.production)
 		if cancelTLS {
 			ws.logger.Warnln("Running Webhook without TLS")
-			if err := ws.Server.ListenAndServe(); err != nil {
+			if err := ws.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				ws.logger.Fatalf("Webhook server: %s\n", err)
 			}
 		} else {
 			// Start webhook server
-			if err := ws.Server.ListenAndServeTLS(ws.certFile, ws.keyFile); err != nil {
+			if err := ws.Server.ListenAndServeTLS(ws.certFile, ws.keyFile); err != nil && err != http.ErrServerClosed {
 				ws.logger.Fatalf("Webhook server: %s\n", err)
 			}
 		}
@@ -129,7 +129,7 @@ func NewWebhook(opt ...Option) (*WebhookServer, error) {
 	an := &AdmissionNotifier{
 		observers: map[observer.Observer]struct{}{},
 	}
-	r, err := newRouter(opts.production, webhookMiddleware(an))
+	r, err := newRouter(webhookMiddleware(an))
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func NewWebhook(opt ...Option) (*WebhookServer, error) {
 		Name:       "Admission Webhook Server",
 		Server:     s,
 		Notifier:   an,
-		Production: opts.production,
+		production: opts.production,
 		logger:     opts.logger,
 		certFile:   opts.certFile,
 		keyFile:    opts.keyFile,
