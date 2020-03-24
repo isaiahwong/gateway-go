@@ -12,7 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/isaiahwong/gateway-go/internal/k8s"
-	"github.com/isaiahwong/gateway-go/internal/util/log"
+	"github.com/isaiahwong/gateway-go/internal/common/log"
 )
 
 // notFoundMW aka not found middleware

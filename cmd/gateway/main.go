@@ -3,15 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
+	"github.com/isaiahwong/gateway-go/internal/common"
+	"github.com/isaiahwong/gateway-go/internal/common/log"
 	"github.com/isaiahwong/gateway-go/internal/k8s"
 	"github.com/isaiahwong/gateway-go/internal/server"
-	"github.com/isaiahwong/gateway-go/internal/util/log"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 )
@@ -39,8 +37,8 @@ type EnvConfig struct {
 	AppEnv           string
 	Production       bool
 	Host             string
-	Port             string
-	WebhookPort      string
+	Address          string
+	WebhookAddress   string
 	WebhookSecretKey string
 	DisableK8S       bool
 
@@ -62,9 +60,6 @@ var config *EnvConfig
 func mapEnvWithDefaults(envKey string, defaults string) string {
 	v := os.Getenv(envKey)
 	if v == "" {
-		if defaults == "" {
-			panic("defaults is not specified")
-		}
 		return defaults
 	}
 	return v
@@ -79,12 +74,12 @@ func loadEnv() {
 
 	config = &EnvConfig{
 		AppEnv:            mapEnvWithDefaults("APP_ENV", "development"),
-		Production:        mapEnvWithDefaults("APP_ENV", "development") == "true",
+		Production:        mapEnvWithDefaults("APP_ENV", "development") == "production",
 		DisableK8S:        mapEnvWithDefaults("DISABLE_K8S_CLIENT", "true") == "true",
-		Port:              mapEnvWithDefaults("PORT", "5000"),
-		WebhookPort:       mapEnvWithDefaults("WEBHOOK_PORT", "8443"),
-		WebhookKeyDir:     mapEnvWithDefaults("WEBHOOK_KEY_DIR", "/run/secrets/tls/tls.key"),
-		WebhookCertDir:    mapEnvWithDefaults("WEBHOOK_CERT_DIR", "/run/secrets/tls/tls.crt"),
+		Address:           mapEnvWithDefaults("ADDRESS", ":5000"),
+		WebhookAddress:    mapEnvWithDefaults("WEBHOOK_ADDRESS", ":8443"),
+		WebhookKeyDir:     mapEnvWithDefaults("WEBHOOK_KEY_DIR", ""),
+		WebhookCertDir:    mapEnvWithDefaults("WEBHOOK_CERT_DIR", ""),
 		EnableStackdriver: mapEnvWithDefaults("ENABLE_STACKDRIVER", "true") == "true",
 	}
 }
@@ -94,28 +89,6 @@ var logger *logrus.Logger
 func init() {
 	loadEnv()
 	logger = log.NewLogger()
-}
-
-// Kills server gracefully
-func gracefully(s ...*http.Server) {
-	// Wait for interrupt signal to gracefully shutdown the server with
-	// a timeout of 5 seconds.
-	quit := make(chan os.Signal)
-	// kill (no param) default send syscall.SIGTERM
-	// kill -2 is syscall.SIGINT
-	// kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	logger.Infoln("Shutting down servers")
-
-	ctx := context.Background()
-
-	for _, srv := range s {
-		if err := srv.Shutdown(ctx); err != nil {
-			logger.Errorf("Error Shutting Down : %v", err)
-		}
-	}
-
 }
 
 // Execute the entry point for gateway
@@ -130,14 +103,21 @@ func main() {
 		}
 	}
 
-	gs, err := server.NewGatewayServer(config.Port,
+	gs, err := server.NewGatewayServer(
+		server.WithAddress(config.Address),
 		server.WithLogger(logger),
 		server.WithK8SClient(k),
+		server.WithAppEnv(config.Production),
 	)
 	if err != nil {
 		logger.Fatalf("New Gateway error: %v", err)
 	}
-	ws, err := server.NewWebhook(config.WebhookPort)
+
+	ws, err := server.NewWebhook(
+		server.WithAddress(config.WebhookAddress),
+		server.WithTLSCredentials(config.WebhookCertDir, config.WebhookKeyDir),
+		server.WithAppEnv(config.Production),
+	)
 	if err != nil {
 		logger.Fatalf("New Webhook error: %v", err)
 	}
@@ -145,41 +125,18 @@ func main() {
 	// Registers gateway as an observer
 	ws.Notifier.Register(gs)
 
+	gc := common.SignalContext(context.Background())
+	wc := common.SignalContext(context.Background())
+
 	// Start gateway Server
-	go func() {
-		if err := gs.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Fatalf("Gateway Server: %s\n", err)
-		}
-	}()
-
+	gs.Run(gc)
 	// Start Webhook server
-	go func() {
-		cancelTLS := false
-		if config.WebhookCertDir == "" {
-			cancelTLS = true
-			logger.Warnln("Webhook's Cert Dir is not defined")
-		}
-		if config.WebhookKeyDir == "" {
-			cancelTLS = true
-			logger.Warnln("Webhook's Key is not defined")
-		}
+	ws.Run(wc)
 
-		if cancelTLS {
-			logger.Warnln("Running Webhook without TLS")
-			if err := ws.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-				logger.Fatalf("Webhook server: %s\n", err)
-			}
-		} else {
-			// Start webhook server
-			if err := ws.Server.ListenAndServeTLS(config.WebhookCertDir, config.WebhookKeyDir); err != nil && err != http.ErrServerClosed {
-				logger.Fatalf("Webhook server: %s\n", err)
-			}
-		}
-	}()
-
-	// Gracefully kills server which running in the background
-	gracefully(
-		gs.Server,
-		ws.Server,
-	)
+	select {
+	case <-gc.Done():
+	case <-wc.Done():
+		gs.Gracefully(gc)
+		ws.Gracefully(wc)
+	}
 }

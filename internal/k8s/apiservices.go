@@ -3,7 +3,7 @@ package k8s
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/isaiahwong/gateway-go/internal/util/validator"
+	"github.com/isaiahwong/gateway-go/internal/common/validator"
 )
 
 // APIServicesGetter has a method to return a APIServiceInterface.

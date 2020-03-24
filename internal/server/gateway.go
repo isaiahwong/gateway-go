@@ -12,48 +12,27 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	runtime "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/isaiahwong/gateway-go/internal/common/log"
+	"github.com/isaiahwong/gateway-go/internal/common/validator"
 	"github.com/isaiahwong/gateway-go/internal/k8s"
 	"github.com/isaiahwong/gateway-go/internal/k8s/enum"
 	"github.com/isaiahwong/gateway-go/internal/observer"
-	"github.com/isaiahwong/gateway-go/internal/util/log"
-	"github.com/isaiahwong/gateway-go/internal/util/validator"
 	"github.com/isaiahwong/gateway-go/protogen"
 )
 
 // GatewayServer encapsulates GatewayServer and Observer
 type GatewayServer struct {
-	Name      string
-	Server    *http.Server
-	services  map[string]*k8s.APIService
-	logger    log.Logger
-	k8sClient *k8s.Client
+	Name       string
+	production bool
+	Server     *http.Server
+	services   map[string]*k8s.APIService
+	logger     log.Logger
+	k8sClient  *k8s.Client
 }
 
-type gatewayOptions struct {
-	logger    log.Logger
-	k8sClient *k8s.Client
-}
-
-var defaultGatewayOption = gatewayOptions{
+var defaultGatewayOptions = options{
 	logger: log.NewLogger(),
-}
-
-// GatewayOption sets options for GatewayServer.
-type GatewayOption func(*gatewayOptions)
-
-// Logger sets logger for gateway
-func WithLogger(l log.Logger) GatewayOption {
-	return func(o *gatewayOptions) {
-		o.logger = l
-	}
-}
-
-// K8SClient sets k8s client for GatewayServer.
-// Though there isn't a generic type interface :(
-func WithK8SClient(k *k8s.Client) GatewayOption {
-	return func(o *gatewayOptions) {
-		o.k8sClient = k
-	}
+	addr:   ":5000",
 }
 
 // OnNotify receives events when being triggered
@@ -101,8 +80,13 @@ func newGrpcMux(ctx context.Context) *runtime.ServeMux {
 	return mux
 }
 
-func newRouter(attachMiddleware ...func(r *gin.Engine)) (*gin.Engine, error) {
+// newRouter returns a new gin Engine which handles routing for gateway
+func newRouter(prod bool, attachMiddleware ...func(r *gin.Engine)) (*gin.Engine, error) {
 	r := gin.New()
+	if prod {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	if attachMiddleware == nil {
 		return r, nil
 	}
@@ -179,6 +163,7 @@ func applyGrpc(r *gin.Engine, serviceName string, conn *grpc.ClientConn, target 
 func (gs *GatewayServer) applyRoutes() {
 	// Create new Router
 	r, err := newRouter(
+		gs.production,
 		essentialMiddleware(gs),
 	)
 	if err != nil {
@@ -325,15 +310,46 @@ func (gs *GatewayServer) directAdmission(d []byte) {
 	}
 }
 
+func (gs *GatewayServer) Gracefully(ctx context.Context) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	// Close all grpc client connection
+	for _, s := range gs.services {
+		if s.GRPCClientConn != nil {
+			s.GRPCClientConn.Close()
+		}
+	}
+	if err := gs.Server.Shutdown(ctx); err != nil && err != http.ErrServerClosed {
+		gs.logger.Errorf("Gracefully: Error shutting down %v server: %v\n", gs.Name, err)
+	}
+	gs.logger.Infof("%v closed\n", gs.Name)
+}
+
+// Run executes GatewayServer
+func (gs *GatewayServer) Run(ctx context.Context) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go func() {
+		gs.logger.Infof("Running %v on %v\n", gs.Name, gs.Server.Addr)
+		if err := gs.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			gs.logger.Fatalf("Gateway Server: %s\n", err)
+		}
+		cancel()
+	}()
+
+	return nil
+}
+
 // NewGatewayServer returns a new gin server
-func NewGatewayServer(port string, opt ...GatewayOption) (*GatewayServer, error) {
-	opts := defaultGatewayOption
+func NewGatewayServer(opt ...Option) (*GatewayServer, error) {
+	opts := defaultGatewayOptions
 	for _, o := range opt {
 		o(&opts)
 	}
 	// Initialize Http Server
 	s := &http.Server{
-		Addr: fmt.Sprintf(":%v", port),
+		Addr: opts.addr,
 	}
 	// Initialize GatewayServer
 	gs := &GatewayServer{
