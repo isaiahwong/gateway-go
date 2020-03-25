@@ -1,12 +1,12 @@
 package server
 
 import (
-	"github.com/isaiahwong/gateway-go/internal/common/log"
 	"github.com/isaiahwong/gateway-go/internal/k8s"
+	"github.com/sirupsen/logrus"
 )
 
 type options struct {
-	logger          log.Logger
+	logger          *logrus.Logger
 	k8sClient       *k8s.Client
 	production      bool
 	certFile        string
@@ -27,7 +27,7 @@ func WithAddress(addr string) Option {
 }
 
 // WithLogger returns an Option sets logger for gateway
-func WithLogger(l log.Logger) Option {
+func WithLogger(l *logrus.Logger) Option {
 	return func(o *options) {
 		o.logger = l
 	}

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
@@ -29,7 +30,7 @@ type GatewayServer struct {
 	production bool
 	Server     *http.Server
 	services   map[string]*k8s.APIService
-	logger     log.Logger
+	logger     *logrus.Logger
 	k8sClient  *k8s.Client
 	accountSVC accountsV1.AccountsServiceClient
 }
@@ -67,9 +68,9 @@ func forwardAllHeaders(_ context.Context, r *http.Request) metadata.MD {
 }
 
 // newGrpcMux creates a new mux that handles grpc calls.
-func newGrpcMux(ctx context.Context) *runtime.ServeMux {
-	runtime.HTTPError = HTTPError
-	runtime.OtherErrorHandler = OtherErrorHandler
+func (gs *GatewayServer) newGrpcMux(ctx context.Context) *runtime.ServeMux {
+	runtime.HTTPError = HTTPErrorWithLogger(gs.logger)
+	runtime.OtherErrorHandler = OtherErrorWithLogger(gs.logger)
 	mux := runtime.NewServeMux(
 		runtime.WithMetadata(forwardAllHeaders),
 	)
@@ -197,7 +198,7 @@ func (gs *GatewayServer) applyGrpc(r *gin.Engine, svc *k8s.APIService, serviceNa
 		}
 	}
 	// creates a new mux
-	mux := newGrpcMux(context.Background())
+	mux := gs.newGrpcMux(context.Background())
 	// pass mux to grpc handlers
 	svcDesc.Handler(context.Background(), mux, conn)
 	handler := gs.authentication(svc, func(c *gin.Context) {

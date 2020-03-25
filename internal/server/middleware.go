@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/isaiahwong/gateway-go/internal/common/log"
 	"github.com/isaiahwong/gateway-go/internal/k8s"
+	"github.com/sirupsen/logrus"
 )
 
 // notFoundMW aka not found middleware
@@ -58,7 +58,7 @@ func WebhookRequests(c *gin.Context) {
 	c.Next()
 }
 
-func requestLogger(l log.Logger) gin.HandlerFunc {
+func requestLogger(l *logrus.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		buf, _ := ioutil.ReadAll(c.Request.Body)
 		rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
@@ -67,7 +67,11 @@ func requestLogger(l log.Logger) gin.HandlerFunc {
 		if l == nil {
 			fmt.Println(c.Request.URL.Path, readBody(rdr1)) // Print request body
 		} else {
-			l.Infof(c.Request.URL.Path)
+			l.WithFields(logrus.Fields{
+				"requestUrl":    c.Request.URL,
+				"requestMethod": c.Request.Method,
+				"remoteIp":      c.ClientIP(),
+			})
 		}
 		c.Request.Body = rdr2
 		c.Next()

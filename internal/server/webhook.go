@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/isaiahwong/gateway-go/internal/common/log"
 	"github.com/isaiahwong/gateway-go/internal/observer"
+	"github.com/sirupsen/logrus"
 )
 
 var defaultWebhookOptions = options{
@@ -45,7 +46,7 @@ type WebhookServer struct {
 	Server     *http.Server
 	Notifier   *AdmissionNotifier
 	production bool
-	logger     log.Logger
+	logger     *logrus.Logger
 	certFile   string
 	keyFile    string
 }
