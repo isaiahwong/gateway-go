@@ -36,9 +36,9 @@ func NotFound(msg string) *notFound {
 }
 
 type errors struct {
-	Param   string `json:"param"`
-	Message string `json:"message"`
-	Value   string `json:"value"`
+	Param   string      `json:"param"`
+	Message string      `json:"message"`
+	Value   interface{} `json:"value"`
 }
 
 type errorBody struct {

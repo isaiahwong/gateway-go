@@ -2,8 +2,12 @@ const fs = require('fs');
 const protoLoader = require('@grpc/proto-loader');
 
 const PROTO_GEN = `${__dirname}/../../../protogen`;
-const PROTOS = `${__dirname}/../../../proto/api`;
+const PROTOS = [
+  `${__dirname}/../../../proto/api`,
+  `${__dirname}/../../../proto/accounts-proto/api`,
+];
 const INCLUDES = [
+  `${__dirname}/../../../proto/accounts-proto/api`,
   `${__dirname}/../../../proto/api`,
   `${__dirname}/../../../proto/third_party/googleapis`
 ];
@@ -75,7 +79,7 @@ function loadProto(filePath, include) {
  * @param {String} filePath Dir
  * @param {Array} relativeInclude Directory has to be relative to where it is being loaded from
  */
-function loadProtos({ protos = [], path, filePath, includeDirs }) {
+function loadProtos({ protos = [], path = [], filePath, includeDirs }) {
   if (!filePath) filePath = path;
   fs.readdirSync(filePath).forEach(fileName => {
     const fullPath = appendTrailingSlash(filePath) + fileName;
@@ -100,6 +104,12 @@ function loadProtos({ protos = [], path, filePath, includeDirs }) {
       proto.filePath = `/${fp}`;
       protos.push(proto);
     }
+  });
+}
+
+function loadPaths({ protos = [], paths = [], includeDirs }) {
+  paths.forEach(path => {
+    loadProtos({ protos, path, includeDirs });
   });
 }
 
@@ -132,11 +142,11 @@ function writeToFile(obj) {
 }
 
 function main() {
-  console.log('index.js: Generating Descriptors')
+  console.log('index.js: Generating Descriptors');
   const condition = {};
   ensureGatewayGenerated(PROTO_GEN, null, condition);
   const protos = [];
-  loadProtos({ protos, path: PROTOS, includeDirs: INCLUDES });
+  loadPaths({ protos, paths: PROTOS, includeDirs: INCLUDES });
   // Match based on file path
   writeToFile(protos.filter(p => condition[p.path] !== undefined));
   console.log('index.js: JSON file has been saved.');

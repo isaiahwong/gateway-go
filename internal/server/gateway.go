@@ -45,7 +45,6 @@ func essentialMiddleware(gs *GatewayServer) func(*gin.Engine) {
 		r.Use(gin.Recovery())
 		r.Use(requestLogger(gs.logger))
 		r.Use(WebhookRequests)
-		r.Use(authMW(&gs.services))
 		// Health route
 		r.GET("/hz", func(c *gin.Context) {
 			c.JSON(200, gin.H{
@@ -299,7 +298,8 @@ func (gs *GatewayServer) fetchAllServices() error {
 	for _, d := range svcs {
 		o, err := gs.k8sClient.CoreAPI().Admission().UnmarshalK8SObject(d)
 		if err != nil {
-			return fmt.Errorf("fetchAllServices: %v", err)
+			gs.logger.Errorf("fetchAllServices: %v", err)
+			continue
 		}
 		// Filter admission request if incoming request does not have api-service labeled.
 		if strings.ToLower(o.Metadata.Labels.ResourceType) != string(enum.LabelAPIService) {
@@ -307,7 +307,8 @@ func (gs *GatewayServer) fetchAllServices() error {
 		}
 		s, err := gs.k8sClient.CoreAPI().APIServices().ObjectToAPI(o)
 		if err != nil {
-			return fmt.Errorf("fetchAllServices: %v", err)
+			gs.logger.Errorf("fetchAllServices: %v", err)
+			continue
 		}
 		gs.updateServices(s)
 	}

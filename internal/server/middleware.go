@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/isaiahwong/gateway-go/internal/k8s"
 	"github.com/sirupsen/logrus"
 )
 
@@ -84,11 +83,4 @@ func readBody(reader io.Reader) string {
 
 	s := buf.String()
 	return s
-}
-
-func authMW(services *map[string]*k8s.APIService) gin.HandlerFunc {
-	// Retrieves service
-	return func(c *gin.Context) {
-		c.Next()
-	}
 }
