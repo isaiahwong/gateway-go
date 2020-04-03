@@ -24,15 +24,14 @@ func genDescriptor() error {
 
 // Generates service handlers dynamically
 func genCode() error {
-	// Get working directory
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
+	mapFile := flag.String("m", "proto/map.json", "Directory of proto mapfile")
+	flag.Parse()
+
 	gen := buildCmd(
 		"go", "run", "hack/genproto/main.go",
-		"-d", dir+"/hack/genproto/descriptor.json",
-		"-o", dir+"/protogen/proto.pb.gw.go",
+		"-d", "hack/genproto/descriptor.json",
+		"-m", *mapFile,
+		"-o", "protogen/proto.pb.gw.go",
 	)
 	if err := gen.Run(); err != nil {
 		return err
@@ -53,7 +52,6 @@ func main() {
 	build := flag.Bool("b", false, "Runs builder methods only")
 	flag.Parse()
 	pipeline := []func() error{
-		genDescriptor,
 		genCode,
 	}
 	// Runs server if no build is specified

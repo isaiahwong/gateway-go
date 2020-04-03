@@ -42,6 +42,8 @@ data:
   DISABLE_K8S_CLIENT: "false"
   ENABLE_STACKDRIVER: "false"
 
+  PROTO_MAP: "proto/map.json"
+
 ---
 # Gateway Deployment
 apiVersion: apps/v1
@@ -60,38 +62,53 @@ spec:
         app: gateway
     spec:
       serviceAccountName: api-gateway
-      containers:
-        - name: gateway
-          image: registry.gitlab.com/isaiahwong/cluster/gateway
-          imagePullPolicy: IfNotPresent
-          ports:
-            - name: gateway-port
-              containerPort: 5000
-            - name: webhook-port
-              containerPort: 8443
-            # - name: admin-port
-            #   containerPort: 8080
-
-          envFrom:
-            - configMapRef:
-                name: gateway-env-configmap
-
-          volumeMounts:
-            - name: webhook-tls-certs
-              mountPath: /run/secrets/tls
-              readOnly: true
-
-          livenessProbe:
-            httpGet:
-              path: /hz
-              port: 5000
-            initialDelaySeconds: 60
-            periodSeconds: 120
-
       volumes:
         - name: webhook-tls-certs
           secret:
             secretName: webhook-server-tls
+        # - name: shared-data
+        #   emptyDir: {}
+
+      # initContainers:
+      # - name: proto
+      #   image:  registry.gitlab.com/canderlabs/proto
+      #   command: ["/bin/sh", "-c", "cp -R /proto/. /shared"]
+      #   imagePullPolicy: Always
+      #   volumeMounts:
+      #   - name: shared-data
+      #     mountPath: /shared
+
+      containers:
+      - name: gateway
+        image: registry.gitlab.com/isaiahwong/cluster/gateway
+        imagePullPolicy: IfNotPresent
+        ports:
+          - name: gateway-port
+            containerPort: 5000
+          - name: webhook-port
+            containerPort: 8443
+          # - name: admin-port
+          #   containerPort: 8080
+
+        envFrom:
+          - configMapRef:
+              name: gateway-env-configmap
+
+        volumeMounts:
+        - name: webhook-tls-certs
+          mountPath: /run/secrets/tls
+          readOnly: true
+
+        # - name: shared-data
+        #   mountPath: /gateway/proto
+        #   readOnly: true
+
+        livenessProbe:
+          httpGet:
+            path: /hz
+            port: 5000
+          initialDelaySeconds: 60
+          periodSeconds: 120
 
       imagePullSecrets:
         - name: gitlab-auth

@@ -75,17 +75,17 @@ function loadProto(filePath, include) {
 
 /**
  * Loads proto files
- * @param {Array} protos adds proto by reference
+ * @param {Array} refProtos adds proto by reference
  * @param {String} filePath Dir
  * @param {Array} relativeInclude Directory has to be relative to where it is being loaded from
  */
-function loadProtos({ protos = [], path = [], filePath, includeDirs }) {
+function loadProtoDir({ refProtos = [], path = [], filePath, includeDirs }) {
   if (!filePath) filePath = path;
   fs.readdirSync(filePath).forEach(fileName => {
     const fullPath = appendTrailingSlash(filePath) + fileName;
     if (!fs.statSync(fullPath).isFile()) {
       // Folder
-      loadProtos({ protos, path, filePath: fullPath, includeDirs });
+      loadProtoDir({ refProtos, path, filePath: fullPath, includeDirs });
     } else if (fileName.match(/\.proto$/) && !filePath.match(/third_party/)) {
       // exclude third party
       const proto =
@@ -95,22 +95,34 @@ function loadProtos({ protos = [], path = [], filePath, includeDirs }) {
       if (!proto) {
         return;
       }
-      const p = path.split('/');
-      let f = filePath.split('/');
-      let fp = fullPath.split('/');
-      f = f.slice(p.length).join('/');
-      fp = fp.slice(p.length).join('/');
-      proto.path = `/${f}`;
-      proto.filePath = `/${fp}`;
-      protos.push(proto);
+      const parent = includeDirs.find((i) => path.includes(i));
+      const f = path.slice(parent.length);
+      const fp = fullPath.slice(path.length);
+
+      console.log(f, fp)
+
+      proto.path = f
+      proto.filePath = fp;
+      refProtos.push(proto);
     }
   });
 }
 
-function loadPaths({ protos = [], paths = [], includeDirs }) {
-  paths.forEach(path => {
-    loadProtos({ protos, path, includeDirs });
-  });
+function loadMap(mapFile) {
+  const protos = [];
+  if (!Array.isArray(mapFile)) {
+    throw new Error("Map File has to an array");
+  }
+  mapFile.forEach((m) => {
+    m.includes = m.includes.map((i) => `${__dirname}/../../../proto/${i}`)
+    m.protos.forEach((p) => 
+      loadProtoDir({ 
+        refProtos: protos, 
+        path: `${__dirname}/../../../proto/${p}`, 
+        includeDirs: m.includes 
+      }))
+  })
+  return protos;
 }
 
 // Checks if protoc gateway has been generated
@@ -141,12 +153,22 @@ function writeToFile(obj) {
   });
 }
 
+function getArgs() {
+  const args = process.argv.slice(2);
+  switch(args[0]) {
+    case "--map": case "-m":
+      const data = args[1];
+      return JSON.parse(data);
+  }
+}
+
 function main() {
   console.log('index.js: Generating Descriptors');
+  const mapFile = getArgs();
   const condition = {};
   ensureGatewayGenerated(PROTO_GEN, null, condition);
-  const protos = [];
-  loadPaths({ protos, paths: PROTOS, includeDirs: INCLUDES });
+  const protos = loadMap(mapFile);
+  // loadPaths({ protos, paths: PROTOS, includeDirs: INCLUDES });
   // Match based on file path
   writeToFile(protos.filter(p => condition[p.path] !== undefined));
   console.log('index.js: JSON file has been saved.');

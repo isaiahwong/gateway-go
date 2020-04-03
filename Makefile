@@ -47,30 +47,16 @@ genproto:
 			mkdir protogen; \
 	fi
 
-	protoc -I./proto/accounts-proto/api \
-		-I$(GOPATH)/src \
-		-I$(GOPATH)/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
-		--go_out=plugins=grpc:./protogen ./proto/accounts-proto/api/accounts/v1/*.proto
-
-	protoc -I./proto/api \
-		-I$(GOPATH)/src \
-		-I$(GOPATH)/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
-		--go_out=plugins=grpc:./protogen ./proto/api/profile/v1/*.proto
-
 	protoc \
 		-I./proto/accounts-proto/api \
 		-I$(GOPATH)/src \
 		-I$(GOPATH)/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
 		--grpc-gateway_out=logtostderr=true,allow_repeated_fields_in_body=true:protogen \
 		--swagger_out=logtostderr=true:protogen \
+		--go_out=plugins=grpc:./protogen \
 		./proto/accounts-proto/api/accounts/v1/*.proto
 
-	protoc \
-		-I./proto/api \
-		-I$(GOPATH)/src \
-		-I$(GOPATH)/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
-		--grpc-gateway_out=logtostderr=true,allow_repeated_fields_in_body=true:protogen \
-		--swagger_out=logtostderr=true:protogen \
-		./proto/api/profile/v1/*.proto
 
-# git submodule update --init --recursive
+
+
+

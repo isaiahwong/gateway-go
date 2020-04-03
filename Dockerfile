@@ -2,16 +2,15 @@ FROM golang:1.13-alpine as builder
 
 RUN apk add --update nodejs npm
 RUN apk add --update npm
-# RUN apk add --update curl
-# RUN apk add --update git
-# RUN apk add --update unzip
+RUN apk add --update nodejs npm
+RUN apk add --update npm
+RUN apk add --update curl
+RUN apk add --update git
+RUN apk add --update unzip
+RUN apk add --update protoc
 
-# RUN go get -u github.com/golang/protobuf/protoc-gen-go
-# RUN go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-# RUN curl -Lo protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip
-# RUN unzip protoc.zip
-
-# RUN export PATH=$PATH:$(pwd)/bin
+RUN go get -u github.com/golang/protobuf/protoc-gen-go
+RUN go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 
 WORKDIR /gateway
 

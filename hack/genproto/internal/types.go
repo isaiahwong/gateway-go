@@ -15,3 +15,9 @@ type ServiceDesc struct {
 	Path            string       `json:"path"`
 	FilePath        string       `json:"filePath"`
 }
+
+type ProtoMap struct {
+	Protos     []string `json:"protos"`
+	Includes   []string `json:"includes"`
+	Googleapis bool     `json:"googleapis"`
+}
