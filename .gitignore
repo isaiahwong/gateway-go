@@ -88,8 +88,3 @@ release/cert-manager/issuer.yaml
 release/*secrets*.yaml
 release/*secret*.yaml
 
-proto
-proto/
-protogen
-protogen/
-
