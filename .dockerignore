@@ -6,7 +6,6 @@ package-lock.json
 npm-debug.log
 .git
 .gitmodules
-proto
 .hg
 .svn
 logs
