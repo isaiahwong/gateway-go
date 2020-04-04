@@ -59,17 +59,19 @@ func WebhookRequests(c *gin.Context) {
 
 func requestLogger(l *logrus.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
+
 		buf, _ := ioutil.ReadAll(c.Request.Body)
 		rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
 		rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf)) //We have to create a new Buffer, because rdr1 will be read.
-
+		body := readBody(rdr1)
 		if l == nil {
-			fmt.Println(c.Request.URL.Path, readBody(rdr1)) // Print request body
+			fmt.Println(c.Request.URL.Path, body) // Print request body
 		} else {
 			l.WithFields(logrus.Fields{
 				"requestUrl":    c.Request.URL,
 				"requestMethod": c.Request.Method,
 				"remoteIp":      c.ClientIP(),
+				"payload":       body,
 			})
 		}
 		c.Request.Body = rdr2
