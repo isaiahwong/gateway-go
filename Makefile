@@ -37,7 +37,7 @@ clean:
 	docker rmi $( docker images | grep '<none>') --force 2>/dev/null
 
 gen-manifest-release:
-	./tools/gen-manifest.sh gen-cert --release true --image registry.gitlab.com/isaiahwong/cluster/gateway
+	./tools/gen-manifest.sh gen-cert --release true --image $(IMAGE_NAME)
 
 genhealth:
 	protoc --go_out=plugins=grpc:proto -I $(PROTO_DIR) $(PROTO_DIR)/health.proto
