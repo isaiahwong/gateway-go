@@ -37,12 +37,15 @@ clean:
 	docker rmi $( docker images | grep '<none>') --force 2>/dev/null
 
 gen-manifest-release:
-	./tools/gen-manifest.sh gen-cert --release true
+	./tools/gen-manifest.sh gen-cert --release true --image registry.gitlab.com/isaiahwong/cluster/gateway
 
 genhealth:
 	protoc --go_out=plugins=grpc:proto -I $(PROTO_DIR) $(PROTO_DIR)/health.proto
 
 genproto:
+	go run main.go -b -m proto/_map.json
+
+genproto-manual:
 	if [ ! -d "protogen" ]; then \
 			mkdir protogen; \
 	fi
@@ -55,8 +58,4 @@ genproto:
 		--swagger_out=logtostderr=true:protogen \
 		--go_out=plugins=grpc:./protogen \
 		./proto/accounts-proto/api/accounts/v1/*.proto
-
-
-
-
 

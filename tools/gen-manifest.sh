@@ -63,7 +63,10 @@ generate_keys() {
 }
 
 gen_cert() {
-  imagepullpolicy=IfNotPresent
+  # Default Config Values
+  image_pull_policy=IfNotPresent
+  app_env="\"development\""
+
   if [[ $release == true ]]
   then
     echo 'Release production'
@@ -71,7 +74,8 @@ gen_cert() {
     tmpdir="$dir/../release"
     cp $basedir/template.yaml $tmpdir/$out
     basedir=$tmpdir
-    imagepullpolicy=Always
+    image_pull_policy=Always
+    app_env="\"production\""
   else
     # Create manifest file
     cp $basedir/template.yaml $basedir/$out
@@ -102,14 +106,18 @@ gen_cert() {
   cd ..
 
   # Replaces the respective values crt, key and caBundle in output file
+  # using space to delimit in sed
+  # https://backreference.org/2010/02/20/using-different-delimiters-in-sed/
   find $basedir -name $out \
   -exec sed -i '' -e \
-  "s/{{TLS_CRT}}/${tls_crt}/g;\
-  s/{{TLS_KEY}}/${tls_key}/g;\
-  s/{{CA_CRT}}/${ca_pem_b64}/g;\
-  s/{{IMAGE_PULL_POLICY}}/${imagepullpolicy}/g;\
-  s/{{SERVICE_NAME}}/${service}/g;\
-  s/{{NAMESPACE}}/${namespace}/g;" {} +;
+  "s {{TLS_CRT}} ${tls_crt} g;\
+   s {{TLS_KEY}} ${tls_key} g;\
+   s {{CA_CRT}} ${ca_pem_b64} g;\
+   s {{APP_ENV}} ${app_env} g;\
+   s {{IMAGE}} ${image} g;\
+   s {{IMAGE_PULL_POLICY}} ${image_pull_policy} g;\
+   s {{SERVICE_NAME}} ${service} g;\
+   s {{NAMESPACE}} ${namespace} g;" {} +;
 
   # Deletes key dir
   rm -rf $keydir
@@ -127,6 +135,10 @@ case $1 in
     case ${1} in
       --service)
           service="$2"
+          shift
+          ;;
+     --image)
+          image="$2"
           shift
           ;;
       --namespace)
@@ -151,6 +163,7 @@ case $1 in
     done
     [ -z ${service} ] && service=gateway-service
     [ -z ${namespace} ] && namespace=default
+    [ -z ${image} ] && image=registry.gitlab.com/isaiahwong/cluster/gateway
     [ -z ${nginx} ] && nginx=false
     [ -z ${release} ] && release=false
     [ -z ${out} ] && out=gateway.yaml

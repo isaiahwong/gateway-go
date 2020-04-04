@@ -7,6 +7,8 @@ import (
 	"os/exec"
 )
 
+var mapFile *string
+
 func buildCmd(name string, cmd ...string) *exec.Cmd {
 	c := exec.Command(name, cmd...)
 	c.Stdout = os.Stdout
@@ -24,9 +26,6 @@ func genDescriptor() error {
 
 // Generates service handlers dynamically
 func genCode() error {
-	mapFile := flag.String("m", "proto/map.json", "Directory of proto mapfile")
-	flag.Parse()
-
 	gen := buildCmd(
 		"go", "run", "hack/genproto/main.go",
 		"-d", "hack/genproto/descriptor.json",
@@ -49,6 +48,7 @@ func server() error {
 
 func main() {
 	// Get options from flags
+	mapFile = flag.String("m", "proto/map.json", "Directory of proto mapfile")
 	build := flag.Bool("b", false, "Runs builder methods only")
 	flag.Parse()
 	pipeline := []func() error{

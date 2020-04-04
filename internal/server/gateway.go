@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -97,11 +98,25 @@ func (gs *GatewayServer) authentication(svc *k8s.APIService, cb gin.HandlerFunc)
 			c.Abort()
 		}
 	}
-	r, ok := svc.Authentication.Required.(bool)
-	if !ok {
-		gs.logger.Warn("authentication: unable to parse %v config.authentication.required to bool. Fall back to not required")
-		r = false
+	r := true
+	required := svc.Authentication.Required
+
+	switch svc.Authentication.Required.(type) {
+	case bool:
+		b, ok := required.(bool)
+		if ok {
+			r = b
+		}
+	case string:
+		if s, ok := required.(string); ok {
+			b, err := strconv.ParseBool(s)
+			if err != nil {
+				gs.logger.Warnf("[%v] Error parsing %v - authentication.required. Falling back to true", svc.ServiceName, required)
+			}
+			r = b
+		}
 	}
+
 	if !r {
 		return cb
 	}
@@ -233,20 +248,33 @@ func (gs *GatewayServer) applyRoutes() {
 		// Iterate exposed ports of services
 		// TODO: Test if routes is are alive
 		for _, port := range svc.Ports {
+			target := fmt.Sprintf("%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
+			route := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
+
+			lf := logrus.Fields{
+				"protocol":       "grpc",
+				"route":          route,
+				"service":        svc.ServiceName,
+				"authentication": svc.Authentication.Required,
+				"apiVersion":     svc.APIversion,
+			}
+
 			switch port.Name {
 			case "http":
-				target := fmt.Sprintf("%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
-				route := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
 				err := gs.applyHTTP(r, svc, target, route)
 				if err != nil {
-					gs.logger.Error(err)
+					gs.logger.WithFields(lf).Error(err)
+				}
+				if gs.production {
+					gs.logger.WithFields(lf).Info("Route -->")
 				}
 			case "grpc":
-				target := fmt.Sprintf("%v.svc.cluster.local:%v", svc.DNSPath, port.Port)
-				route := fmt.Sprintf("/%v%v", svc.APIversion, svc.Path)
 				err := gs.applyGrpc(r, svc, svc.ServiceName, svc.GRPCClientConn, target, route)
 				if err != nil {
-					gs.logger.Error(err)
+					gs.logger.WithFields(lf).Error(err)
+				}
+				if gs.production {
+					gs.logger.WithFields(lf).Info("Route -->")
 				}
 			}
 		}
