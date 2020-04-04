@@ -69,10 +69,9 @@ func forwardAllHeaders(_ context.Context, r *http.Request) metadata.MD {
 
 // newGrpcMux creates a new mux that handles grpc calls.
 func (gs *GatewayServer) newGrpcMux(ctx context.Context) *runtime.ServeMux {
-	runtime.HTTPError = HTTPErrorWithLogger(gs.logger)
-	runtime.OtherErrorHandler = OtherErrorWithLogger(gs.logger)
 	mux := runtime.NewServeMux(
 		runtime.WithMetadata(forwardAllHeaders),
+		runtime.WithProtoErrorHandler(ProtoErrorWithLogger(gs.logger)),
 	)
 	return mux
 }
@@ -126,7 +125,7 @@ func (gs *GatewayServer) authentication(svc *k8s.APIService, cb gin.HandlerFunc)
 			"message": "request is malformed",
 		}
 		url := c.Request.URL
-		// Implement exclude
+		// TODO: Revise logic exclude
 		for _, e := range svc.Authentication.Exclude {
 			if e == url.String() {
 				cb(c)
