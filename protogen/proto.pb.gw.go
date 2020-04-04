@@ -7,7 +7,6 @@ import (
 	runtime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
 	"github.com/isaiahwong/gateway-go/protogen/accounts/v1"
-	"github.com/isaiahwong/gateway-go/protogen/profile/v1"
 )
 
 type ServiceDesc struct {
@@ -19,19 +18,12 @@ type ServiceDesc struct {
 }
 
 var _Services = map[string]ServiceDesc{
-	"api.accounts.v1.AccountsService": ServiceDesc{
+	"api.accounts.v2.AccountsService": ServiceDesc{
 		ServiceName: "AccountsService",
-		PackageSVC: "api.accounts.v1.AccountsService",
-		Package:        "api.accounts.v1",
+		PackageSVC: "api.accounts.v2.AccountsService",
+		Package:        "api.accounts.v2",
 		CurrentPackage: "accounts",
 		Handler: accounts.RegisterAccountsServiceHandler,
-	},
-	"api.profile.v1.ProfileService": ServiceDesc{
-		ServiceName: "ProfileService",
-		PackageSVC: "api.profile.v1.ProfileService",
-		Package:        "api.profile.v1",
-		CurrentPackage: "profile",
-		Handler: profile.RegisterProfileServiceHandler,
 	},
 }
 
