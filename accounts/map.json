@@ -1,0 +1,8 @@
+[
+  {
+    "protos": ["accounts/api/accounts/v1"],
+    "includes": [
+      "accounts/api"
+    ]
+  }
+]

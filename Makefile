@@ -43,7 +43,7 @@ genhealth:
 	protoc --go_out=plugins=grpc:proto -I $(PROTO_DIR) $(PROTO_DIR)/health.proto
 
 genproto:
-	go run main.go -b -m proto/_map.json
+	go run main.go -b -m accounts/map.json
 
 genproto-manual:
 	if [ ! -d "protogen" ]; then \

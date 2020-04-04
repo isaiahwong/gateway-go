@@ -112,11 +112,11 @@ function loadMap(mapFile) {
     throw new Error("Map File has to an array");
   }
   mapFile.forEach((m) => {
-    m.includes = m.includes.map((i) => `${__dirname}/../../../proto/${i}`)
+    m.includes = m.includes.map((i) => `${__dirname}/../../../${i}`)
     m.protos.forEach((p) => 
       loadProtoDir({ 
         refProtos: protos, 
-        path: `${__dirname}/../../../proto/${p}`, 
+        path: `${__dirname}/../../../${p}`, 
         includeDirs: m.includes 
       }))
   })
