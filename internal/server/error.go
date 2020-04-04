@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -116,7 +115,6 @@ func knownTypeErrors(err error, code *int) {
 		"json: cannot unmarshal",
 	}
 	for _, k := range known {
-		fmt.Println(strings.Contains(err.Error(), k))
 		if strings.Contains(err.Error(), k) {
 			*code = 500
 		}
