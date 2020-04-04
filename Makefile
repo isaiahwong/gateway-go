@@ -36,6 +36,9 @@ build-push:
 clean:
 	docker rmi $( docker images | grep '<none>') --force 2>/dev/null
 
+gen-manifest:
+	./tools/gen-manifest.sh gen-cert --image $(IMAGE_NAME)
+
 gen-manifest-release:
 	./tools/gen-manifest.sh gen-cert --release true --image $(IMAGE_NAME)
 
