@@ -55,24 +55,21 @@ type errorBody struct {
 // ProtoErrorWithLogger replies to the request with the error.
 // Overrides runtime.error HTTPError
 func ProtoErrorWithLogger(l *logrus.Logger) func(context.Context, *runtime.ServeMux, runtime.Marshaler, http.ResponseWriter, *http.Request, error) {
-	return func(ctx context.Context, m *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, req *http.Request, err error) {
+	return func(ctx context.Context, m *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, req *http.Request, protoErr error) {
 		eb := errorBody{}
 
-		code := runtime.HTTPStatusFromCode(grpc.Code(err))
+		code := runtime.HTTPStatusFromCode(grpc.Code(protoErr))
 		w.Header().Set("Content-type", marshaler.ContentType())
-		eb.Error = grpc.ErrorDesc(err)
-
-		// Change the code
-		knownTypeErrors(err, &code)
+		eb.Error = grpc.ErrorDesc(protoErr)
 
 		md, ok := runtime.ServerMetadataFromContext(ctx)
 		if ok {
 			if details := md.TrailerMD.Get("errors-bin"); len(details) > 0 {
 				e := []errors{}
 				// Maps json values to error body
-				err = json.Unmarshal([]byte(details[0]), &e)
+				err := json.Unmarshal([]byte(details[0]), &e)
 				if err != nil {
-					l.Errorf("HTTPErrorWithLogger: %v", err)
+					l.Errorf("ProtoErrorWithLogger: %v", err)
 				} else {
 					eb.Errors = e
 				}
@@ -83,7 +80,7 @@ func ProtoErrorWithLogger(l *logrus.Logger) func(context.Context, *runtime.Serve
 		if err != nil {
 			w.WriteHeader(500)
 			w.Write([]byte(fallback))
-			l.Errorf("HTTPErrorWithLogger: %v")
+			l.Errorf("ProtoErrorWithLogger: %v")
 			return
 		}
 
@@ -100,6 +97,8 @@ func ProtoErrorWithLogger(l *logrus.Logger) func(context.Context, *runtime.Serve
 			eb.Error = "An unexpected error occurred"
 			eb.Errors = nil
 		}
+		// Change message of inner workings
+		knownTypeErrors(protoErr, &eb)
 		w.WriteHeader(code)
 
 		err = json.NewEncoder(w).Encode(eb)
@@ -110,13 +109,13 @@ func ProtoErrorWithLogger(l *logrus.Logger) func(context.Context, *runtime.Serve
 	}
 }
 
-func knownTypeErrors(err error, code *int) {
+func knownTypeErrors(err error, eb *errorBody) {
 	known := []string{
 		"json: cannot unmarshal",
 	}
 	for _, k := range known {
 		if strings.Contains(err.Error(), k) {
-			*code = 500
+			eb.Error = "Malformed Request"
 		}
 	}
 }
