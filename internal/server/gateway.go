@@ -158,7 +158,7 @@ func (gs *GatewayServer) authentication(svc *k8s.APIService, cb gin.HandlerFunc)
 			return
 		}
 		c.JSON(401, gin.H{
-			"active": "false",
+			"active": false,
 		})
 	}
 }
