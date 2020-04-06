@@ -151,7 +151,9 @@ func (gs *GatewayServer) authentication(svc *k8s.APIService, cb gin.HandlerFunc)
 			c.Abort()
 			return
 		}
+		// add subject to header
 		if res.Active {
+			c.Request.Header.Add("subject", res.Sub)
 			cb(c)
 			return
 		}
