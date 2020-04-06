@@ -72,7 +72,7 @@ func requestLogger(l *logrus.Logger) gin.HandlerFunc {
 				"requestMethod": c.Request.Method,
 				"remoteIp":      c.ClientIP(),
 				"payload":       body,
-			})
+			}).Info()
 		}
 		c.Request.Body = rdr2
 		c.Next()
