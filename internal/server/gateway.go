@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -27,6 +28,7 @@ import (
 
 // GatewayServer encapsulates GatewayServer and Observer
 type GatewayServer struct {
+	sync.Mutex
 	Name       string
 	production bool
 	Server     *http.Server
@@ -298,6 +300,8 @@ func (gs *GatewayServer) updateServices(service *k8s.APIService) {
 	if gs.services == nil {
 		gs.services = map[string]*k8s.APIService{}
 	}
+	gs.Lock()
+	defer gs.Unlock()
 	gs.services[service.DNSPath] = service
 }
 
