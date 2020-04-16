@@ -282,6 +282,8 @@ func (gs *GatewayServer) applyRoutes() {
 			}
 		}
 	}
+	gs.Lock()
+	defer gs.Unlock()
 	// Apply routes to server handler
 	gs.Server.Handler = r
 }
@@ -318,6 +320,8 @@ func (gs *GatewayServer) deleteServices(service *k8s.APIService) {
 	if gs.services == nil {
 		return
 	}
+	gs.Lock()
+	defer gs.Unlock()
 	delete(gs.services, service.DNSPath)
 }
 
