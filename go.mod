@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-playground/validator/v10 v10.2.0
 	github.com/golang/protobuf v1.3.4
+	github.com/gorilla/websocket v1.4.2
 	github.com/grpc-ecosystem/grpc-gateway v1.12.1
 	github.com/isaiahwong/accounts-go v0.0.0-20200323205138-d531325411ef // indirect
 	github.com/joho/godotenv v1.3.0
@@ -14,6 +15,7 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5 // indirect
+	github.com/tmc/grpc-websocket-proxy v0.0.0-20200122045848-3419fae592fc
 	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59 // indirect
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
 	golang.org/x/sys v0.0.0-20200331124033-c3d80250170d // indirect

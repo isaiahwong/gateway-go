@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -24,6 +25,7 @@ import (
 	"github.com/isaiahwong/gateway-go/internal/services"
 	"github.com/isaiahwong/gateway-go/protogen"
 	accountsV1 "github.com/isaiahwong/gateway-go/protogen/accounts/v1"
+	"github.com/tmc/grpc-websocket-proxy/wsproxy"
 )
 
 // GatewayServer encapsulates GatewayServer and Observer
@@ -91,40 +93,50 @@ func newRouter(attachMiddleware ...func(r *gin.Engine)) (*gin.Engine, error) {
 	return r, nil
 }
 
-func (gs *GatewayServer) authentication(svc *k8s.APIService, cb gin.HandlerFunc) gin.HandlerFunc {
+func transformSubProtocolHeader(header string) string {
+	tokens := strings.SplitN(header, "Bearer,", 2)
+
+	if len(tokens) < 2 {
+		return ""
+	}
+
+	return fmt.Sprintf("Bearer %v", strings.Trim(tokens[1], " "))
+}
+
+func (gs *GatewayServer) authorization(svc *k8s.APIService, cb gin.HandlerFunc) gin.HandlerFunc {
 	if svc == nil {
-		gs.logger.Errorf("authentication: svc is nil")
+		gs.logger.Errorf("authorization: svc is nil")
 		return func(c *gin.Context) {
 			c.String(500, "Internal Server Error")
 			c.Abort()
 		}
 	}
-	r := true
-	required := svc.Authentication.Required
+	required := true
+	r := svc.Authentication.Required
 
 	switch svc.Authentication.Required.(type) {
 	case bool:
-		b, ok := required.(bool)
+		b, ok := r.(bool)
 		if ok {
 			r = b
 		}
 	case string:
-		if s, ok := required.(string); ok {
+		if s, ok := r.(string); ok {
 			b, err := strconv.ParseBool(s)
 			if err != nil {
 				gs.logger.Warnf("[%v] Error parsing %v - authentication.required. Falling back to true", svc.ServiceName, required)
 			}
-			r = b
+			required = b
 		}
 	}
 
-	if !r {
-		return cb
-	}
 	return func(c *gin.Context) {
+		if !required {
+			cb(c)
+			return
+		}
 		em := gin.H{
-			"error":   "invalid_request",
-			"message": "request is malformed",
+			"error": "Request is malformed",
 		}
 		url := c.Request.URL
 		// TODO: Revise logic exclude
@@ -134,9 +146,20 @@ func (gs *GatewayServer) authentication(svc *k8s.APIService, cb gin.HandlerFunc)
 				return
 			}
 		}
-		token := c.Request.Header.Get("Authorization")
+
+		token := ""
+		// Websocket proxy will verify the header
+		// there's no way of introspecting it or having a middleware
+		// Code extracted from github.com/tmc/grpc-websocket-proxy
+		if websocket.IsWebSocketUpgrade(c.Request) {
+			if swsp := c.Request.Header.Get("Sec-WebSocket-Protocol"); swsp != "" {
+				token = transformSubProtocolHeader(swsp)
+			}
+		} else {
+			token = c.Request.Header.Get("Authorization")
+		}
 		if token == "" {
-			c.JSON(400, em)
+			c.JSON(401, em)
 			c.Abort()
 			return
 		}
@@ -153,6 +176,7 @@ func (gs *GatewayServer) authentication(svc *k8s.APIService, cb gin.HandlerFunc)
 			c.Abort()
 			return
 		}
+
 		// add subject to header
 		if res.Active {
 			c.Request.Header.Add("subject", res.Sub)
@@ -173,7 +197,7 @@ func (gs *GatewayServer) applyHTTP(r *gin.Engine, svc *k8s.APIService, target st
 		return InvalidParams("applyHttp: target is empty")
 	}
 	// TODO: Test connectivity
-	rp := gs.authentication(svc, ReverseProxy(target))
+	rp := gs.authorization(svc, ReverseProxy(target))
 	// Routes all requests to service
 	r.GET(route, rp)
 	r.POST(route, rp)
@@ -217,9 +241,17 @@ func (gs *GatewayServer) applyGrpc(r *gin.Engine, svc *k8s.APIService, serviceNa
 	// creates a new mux
 	mux := gs.newGrpcMux(context.Background())
 	// pass mux to grpc handlers
-	svcDesc.Handler(context.Background(), mux, conn)
-	handler := gs.authentication(svc, func(c *gin.Context) {
-		mux.ServeHTTP(c.Writer, c.Request)
+	err = svcDesc.Handler(context.Background(), mux, conn)
+	if err != nil {
+		return fmt.Errorf("mux Handler: %v", err)
+	}
+	handler := gs.authorization(svc, func(c *gin.Context) {
+		wsproxy.WebsocketProxy(mux,
+			wsproxy.WithForwardedHeaders(func(header string) bool {
+				return true
+			}),
+			wsproxy.WithLogger(gs.logger),
+		).ServeHTTP(c.Writer, c.Request)
 	})
 
 	r.GET(route, handler)

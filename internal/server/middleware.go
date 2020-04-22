@@ -80,6 +80,7 @@ func requestLogger(l *logrus.Logger) gin.HandlerFunc {
 		}
 		c.Request.Body = rdr2
 		c.Next()
+		return
 	}
 }
 
