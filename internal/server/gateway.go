@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v7"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -31,13 +32,14 @@ import (
 // GatewayServer encapsulates GatewayServer and Observer
 type GatewayServer struct {
 	sync.Mutex
-	Name       string
-	production bool
-	Server     *http.Server
-	services   map[string]*k8s.APIService
-	logger     *logrus.Logger
-	k8sClient  *k8s.Client
-	accountSVC accountsV1.AccountsServiceClient
+	Name        string
+	production  bool
+	Server      *http.Server
+	services    map[string]*k8s.APIService
+	logger      *logrus.Logger
+	k8sClient   *k8s.Client
+	accountSVC  accountsV1.AccountsServiceClient
+	redisClient *redis.Client
 }
 
 var defaultGatewayOptions = options{
@@ -432,6 +434,40 @@ func (gs *GatewayServer) directAdmission(d []byte) {
 	}
 }
 
+func (gs *GatewayServer) subscribe(ctx context.Context) {
+	if gs.redisClient == nil {
+		return
+	}
+	sub := gs.redisClient.Subscribe(string(RGateway))
+	_, err := sub.Receive()
+	if err != nil {
+		gs.logger.Errorf("gateway: subscribe: %v", err)
+		return
+	}
+
+	subCh := sub.Channel()
+
+	go func() {
+		defer func() {
+			sub.Close()
+		}()
+		for {
+			select {
+			case <-ctx.Done():
+				fmt.Println("done")
+				return
+			case msg, ok := <-subCh:
+				fmt.Println(msg)
+				if !ok {
+					return
+				}
+				fmt.Println("received")
+				gs.directAdmission([]byte(msg.Payload))
+			}
+		}
+	}()
+}
+
 // OnNotify receives events when being triggered
 func (gs *GatewayServer) OnNotify(e observer.Event) {
 	if e.Data == nil || len(e.Data) == 0 {
@@ -457,16 +493,17 @@ func (gs *GatewayServer) Gracefully(ctx context.Context) {
 
 // Run executes GatewayServer
 func (gs *GatewayServer) Run(ctx context.Context) error {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
+	runCtx, cancel := context.WithCancel(ctx)
 
 	go func() {
+		defer cancel()
 		gs.logger.Infof("Running %v on [%v] - Production: %v\n", gs.Name, gs.Server.Addr, gs.production)
 		if err := gs.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			gs.logger.Fatalf("Gateway Server: %s\n", err)
 		}
-		cancel()
 	}()
+
+	go gs.subscribe(runCtx)
 
 	return nil
 }
@@ -491,13 +528,14 @@ func NewGatewayServer(opt ...Option) (*GatewayServer, error) {
 	}
 	// Initialize GatewayServer
 	gs := &GatewayServer{
-		services:   map[string]*k8s.APIService{},
-		Server:     s,
-		Name:       "Gateway Server",
-		logger:     opts.logger,
-		k8sClient:  opts.k8sClient,
-		production: opts.production,
-		accountSVC: ac,
+		services:    map[string]*k8s.APIService{},
+		Server:      s,
+		Name:        "Gateway Server",
+		logger:      opts.logger,
+		k8sClient:   opts.k8sClient,
+		production:  opts.production,
+		redisClient: opts.redisClient,
+		accountSVC:  ac,
 	}
 	// Initialize K8SClient if nil
 	if opts.k8sClient != nil {

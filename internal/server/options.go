@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/go-redis/redis/v7"
 	"github.com/isaiahwong/gateway-go/internal/k8s"
 	"github.com/sirupsen/logrus"
 )
@@ -8,6 +9,7 @@ import (
 type options struct {
 	logger          *logrus.Logger
 	k8sClient       *k8s.Client
+	redisClient     *redis.Client
 	production      bool
 	certFile        string
 	keyFile         string
@@ -23,6 +25,13 @@ type Option func(*options)
 func WithAddress(addr string) Option {
 	return func(o *options) {
 		o.addr = addr
+	}
+}
+
+// WithPubSub returns an Option which sets the pubsub that the server will utilise
+func WithPubSub(r *redis.Client) Option {
+	return func(o *options) {
+		o.redisClient = r
 	}
 }
 

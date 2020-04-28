@@ -8,9 +8,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	redisV7 "github.com/go-redis/redis/v7"
 	"github.com/isaiahwong/gateway-go/internal/common"
 	"github.com/isaiahwong/gateway-go/internal/common/log"
 	"github.com/isaiahwong/gateway-go/internal/k8s"
+	"github.com/isaiahwong/gateway-go/internal/redis"
 	"github.com/isaiahwong/gateway-go/internal/server"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -36,27 +38,24 @@ import (
 // DBUser
 // DBPassword
 type EnvConfig struct {
-	AppEnv           string
-	Production       bool
-	Host             string
-	Address          string
-	AccountsAddress  string
-	WebhookAddress   string
-	WebhookSecretKey string
-	DisableK8S       bool
-
-	WebhookKeyDir  string
-	WebhookCertDir string
-
-	AccountsTimeout int
-
+	AppEnv            string
+	Production        bool
+	Host              string
+	Address           string
+	AccountsAddress   string
+	WebhookAddress    string
+	WebhookSecretKey  string
+	DisableK8S        bool
+	WebhookKeyDir     string
+	WebhookCertDir    string
+	AccountsTimeout   int
 	EnableStackdriver bool
-
-	DBUri      string
-	DBName     string
-	DBUser     string
-	DBPassword string
-	DBTimeout  time.Duration
+	DBUri             string
+	DBName            string
+	DBUser            string
+	DBPassword        string
+	DBTimeout         time.Duration
+	RedisAddr         string
 }
 
 // AppConfig config from EnvConfig
@@ -93,6 +92,7 @@ func loadEnv() {
 		WebhookCertDir:    mapEnvWithDefaults("WEBHOOK_CERT_DIR", ""),
 		AccountsTimeout:   at,
 		EnableStackdriver: mapEnvWithDefaults("ENABLE_STACKDRIVER", "true") == "true",
+		RedisAddr:         mapEnvWithDefaults("REDIS_ADDR", ""),
 	}
 }
 
@@ -110,12 +110,24 @@ func init() {
 // Execute the entry point for gateway
 func main() {
 	var k *k8s.Client
+	var r *redisV7.Client
 	var err error
 
 	if !config.DisableK8S {
 		k, err = k8s.NewClient()
 		if err != nil {
 			logger.Fatalf("K8SClient Error: %v", err)
+		}
+	}
+
+	if config.RedisAddr != "" {
+		// Initialize a new Redis Client
+		r, err = redis.New(
+			redis.WithAddress(config.RedisAddr),
+			redis.WithDBTimeout(config.DBTimeout),
+		)
+		if err != nil {
+			logger.Fatalf("Redis: %v", err)
 		}
 	}
 
@@ -126,6 +138,7 @@ func main() {
 		server.WithLogger(logger),
 		server.WithK8SClient(k),
 		server.WithAppEnv(config.Production),
+		server.WithPubSub(r),
 	)
 	if err != nil {
 		logger.Fatalf("NewGatewayServer: %v", err)
@@ -135,6 +148,7 @@ func main() {
 		server.WithAddress(config.WebhookAddress),
 		server.WithTLSCredentials(config.WebhookCertDir, config.WebhookKeyDir),
 		server.WithAppEnv(config.Production),
+		server.WithPubSub(r),
 	)
 	if err != nil {
 		logger.Fatalf("New Webhook error: %v", err)

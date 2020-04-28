@@ -44,6 +44,9 @@ data:
 
   PROTO_MAP: "proto/map.json"
 
+  # Redis
+  REDIS_ADDR: 'redis-gateway.redis-gateway-service:6379'
+
 ---
 # Gateway Deployment
 apiVersion: apps/v1

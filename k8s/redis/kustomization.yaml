@@ -1,0 +1,6 @@
+configMapGenerator:
+  - name: redis-gateway-config
+    files:
+      - redis-config
+resources:
+  - redis-pod.yaml

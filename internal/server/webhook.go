@@ -7,9 +7,16 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v7"
 	"github.com/isaiahwong/gateway-go/internal/common/log"
 	"github.com/isaiahwong/gateway-go/internal/observer"
 	"github.com/sirupsen/logrus"
+)
+
+type RedisChannel string
+
+var (
+	RGateway RedisChannel = "gatewayadmission"
 )
 
 var defaultWebhookOptions = options{
@@ -20,24 +27,29 @@ var defaultWebhookOptions = options{
 // AdmissionNotifier keep track of observers and notifies
 // observers when webhook receives from AdmissionController
 type AdmissionNotifier struct {
-	observers map[observer.Observer]struct{}
+	observers   map[observer.Observer]struct{}
+	redisClient *redis.Client
 }
 
 // Register subscribes observers for an admission event
-func (en *AdmissionNotifier) Register(l observer.Observer) {
-	en.observers[l] = struct{}{}
+func (an *AdmissionNotifier) Register(l observer.Observer) {
+	an.observers[l] = struct{}{}
 }
 
 // Deregister removes observers from the notifier lists
-func (en *AdmissionNotifier) Deregister(l observer.Observer) {
-	delete(en.observers, l)
+func (an *AdmissionNotifier) Deregister(l observer.Observer) {
+	delete(an.observers, l)
 }
 
 // Notify broadcasts to all observers
-func (en *AdmissionNotifier) Notify(e observer.Event) {
-	for o := range en.observers {
-		o.OnNotify(e)
+func (an *AdmissionNotifier) Notify(e observer.Event) {
+	if an.redisClient == nil {
+		for o := range an.observers {
+			o.OnNotify(e)
+		}
+		return
 	}
+	an.redisClient.Publish(string(RGateway), string(e.Data))
 }
 
 // WebhookServer encapsulates Webhookserver and Notifier
@@ -93,10 +105,10 @@ func (ws *WebhookServer) Gracefully(ctx context.Context) {
 
 // Run executes WebhookServer
 func (ws *WebhookServer) Run(ctx context.Context) error {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
+	_, cancel := context.WithCancel(ctx)
 
 	go func() {
+		defer cancel()
 		cancelTLS := false
 		if ws.certFile == "" || ws.keyFile == "" {
 			cancelTLS = true
@@ -114,7 +126,6 @@ func (ws *WebhookServer) Run(ctx context.Context) error {
 				ws.logger.Fatalf("Webhook server: %s\n", err)
 			}
 		}
-		cancel()
 	}()
 
 	return nil
@@ -128,7 +139,8 @@ func NewWebhook(opt ...Option) (*WebhookServer, error) {
 	}
 	// Initialize a new Notifier
 	an := &AdmissionNotifier{
-		observers: map[observer.Observer]struct{}{},
+		observers:   map[observer.Observer]struct{}{},
+		redisClient: opts.redisClient,
 	}
 	r, err := newRouter(webhookMiddleware(an))
 	if err != nil {
