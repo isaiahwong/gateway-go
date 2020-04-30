@@ -51,6 +51,11 @@ var OmitHeaders = map[string]bool{
 	"content-length": true,
 }
 
+var OmitWebSocketHeaders = map[string]bool{
+	"connection": true,
+	"upgrade":    true,
+}
+
 func essentialMiddleware(gs *GatewayServer) func(*gin.Engine) {
 	return func(r *gin.Engine) {
 		r.Use(gin.Recovery())
@@ -258,6 +263,9 @@ func (gs *GatewayServer) applyGrpc(r *gin.Engine, svc *k8s.APIService, serviceNa
 	handler := gs.authorization(svc, func(c *gin.Context) {
 		wsproxy.WebsocketProxy(mux,
 			wsproxy.WithForwardedHeaders(func(header string) bool {
+				if OmitWebSocketHeaders[strings.ToLower(header)] {
+					return false
+				}
 				return true
 			}),
 			wsproxy.WithLogger(gs.logger),
