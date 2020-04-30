@@ -47,6 +47,10 @@ var defaultGatewayOptions = options{
 	addr:   ":5000",
 }
 
+var OmitHeaders = map[string]bool{
+	"content-length": true,
+}
+
 func essentialMiddleware(gs *GatewayServer) func(*gin.Engine) {
 	return func(r *gin.Engine) {
 		r.Use(gin.Recovery())
@@ -62,12 +66,16 @@ func essentialMiddleware(gs *GatewayServer) func(*gin.Engine) {
 	}
 }
 
-// forwardAllHeaders packages http headers into headers-bin and forwards the metadata
-func forwardAllHeaders(_ context.Context, r *http.Request) metadata.MD {
+// forwardHeaders packages http headers into headers-bin and forwards the metadata
+func forwardHeaders(_ context.Context, r *http.Request) metadata.MD {
 	md := metadata.Pairs()
 	for k, v := range r.Header {
+		header := strings.ToLower(k)
+		if OmitHeaders[header] {
+			continue
+		}
 		if len(v) > 0 {
-			md.Set(strings.ToLower(k), v[0])
+			md.Set(header, v[0])
 		}
 	}
 	return md
@@ -76,7 +84,7 @@ func forwardAllHeaders(_ context.Context, r *http.Request) metadata.MD {
 // newGrpcMux creates a new mux that handles grpc calls.
 func (gs *GatewayServer) newGrpcMux(ctx context.Context) *runtime.ServeMux {
 	mux := runtime.NewServeMux(
-		runtime.WithMetadata(forwardAllHeaders),
+		runtime.WithMetadata(forwardHeaders),
 		runtime.WithProtoErrorHandler(ProtoErrorWithLogger(gs.logger)),
 	)
 	return mux
@@ -181,7 +189,7 @@ func (gs *GatewayServer) authorization(svc *k8s.APIService, cb gin.HandlerFunc) 
 
 		// add subject to header
 		if res.Active {
-			c.Request.Header.Add("subject", res.Sub)
+			c.Request.Header.Add("x-subject", res.Sub)
 			cb(c)
 			return
 		}
