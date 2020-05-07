@@ -94,7 +94,7 @@ func loadEnv() {
 		AccountsTimeout:   at,
 		EnableStackdriver: mapEnvWithDefaults("ENABLE_STACKDRIVER", "true") == "true",
 		RedisAddr:         mapEnvWithDefaults("REDIS_ADDR", ""),
-		RedisPassword:     mapEnvWithDefaults("REDIS_ADDR", ""),
+		RedisPassword:     mapEnvWithDefaults("REDIS_PASSWORD", ""),
 	}
 }
 
