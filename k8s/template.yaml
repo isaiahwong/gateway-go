@@ -80,7 +80,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: gateway-env-configmap
-
+            - secretRef:
+                name: gateway-env-secrets
           volumeMounts:
             - name: webhook-tls-certs
               mountPath: /run/secrets/tls

@@ -56,6 +56,7 @@ type EnvConfig struct {
 	DBPassword        string
 	DBTimeout         time.Duration
 	RedisAddr         string
+	RedisPassword     string
 }
 
 // AppConfig config from EnvConfig
@@ -93,6 +94,7 @@ func loadEnv() {
 		AccountsTimeout:   at,
 		EnableStackdriver: mapEnvWithDefaults("ENABLE_STACKDRIVER", "true") == "true",
 		RedisAddr:         mapEnvWithDefaults("REDIS_ADDR", ""),
+		RedisPassword:     mapEnvWithDefaults("REDIS_ADDR", ""),
 	}
 }
 
@@ -124,6 +126,7 @@ func main() {
 		// Initialize a new Redis Client
 		r, err = redis.New(
 			redis.WithAddress(config.RedisAddr),
+			redis.WithPassword(config.RedisPassword),
 			redis.WithDBTimeout(config.DBTimeout),
 		)
 		if err != nil {
