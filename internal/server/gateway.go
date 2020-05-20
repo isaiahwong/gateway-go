@@ -470,14 +470,12 @@ func (gs *GatewayServer) subscribe(ctx context.Context) {
 		for {
 			select {
 			case <-ctx.Done():
-				fmt.Println("done")
 				return
 			case msg, ok := <-subCh:
 				fmt.Println(msg)
 				if !ok {
 					return
 				}
-				fmt.Println("received")
 				gs.directAdmission([]byte(msg.Payload))
 			}
 		}
