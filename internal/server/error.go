@@ -48,7 +48,7 @@ type errorBody struct {
 	// This is to make the error more compatible with users that expect errors to be Status objects:
 	// https://github.com/grpc/grpc/blob/master/src/proto/grpc/status/status.proto
 	// It should be the exact same message as the Error field.
-	Message string     `protobuf:"bytes,2,name=message" json:"message"`
+	// Message string     `protobuf:"bytes,2,name=message" json:"message"`
 	Details []*any.Any `protobuf:"bytes,3,rep,name=details" json:"details,omitempty"`
 	Errors  []Error    `json:"errors"`
 }
@@ -57,9 +57,11 @@ type errorBody struct {
 // Overrides runtime.error HTTPError
 func ProtoErrorWithLogger(l *logrus.Logger) func(context.Context, *runtime.ServeMux, runtime.Marshaler, http.ResponseWriter, *http.Request, error) {
 	return func(ctx context.Context, m *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, req *http.Request, protoErr error) {
+		const fallback = `{"error": "An unexpected error occurred."}`
 		eb := errorBody{}
 
 		code := runtime.HTTPStatusFromCode(grpc.Code(protoErr))
+
 		w.Header().Set("Content-type", marshaler.ContentType())
 		eb.Error = grpc.ErrorDesc(protoErr)
 
@@ -76,7 +78,6 @@ func ProtoErrorWithLogger(l *logrus.Logger) func(context.Context, *runtime.Serve
 				}
 			}
 		}
-		const fallback = `{"error": "An unexpected error occurred."}`
 		jsonByte, err := json.Marshal(eb)
 		if err != nil {
 			w.WriteHeader(500)
@@ -93,7 +94,11 @@ func ProtoErrorWithLogger(l *logrus.Logger) func(context.Context, *runtime.Serve
 			"remoteIp":      req.Header.Get("X-Forwarded-For"),
 		}).Errorln(eb.Error)
 
-		if code >= 500 {
+		// Handle 501 error
+		if code == 501 {
+			code = 404
+			eb.Error = "Not Found"
+		} else if code >= 500 {
 			code = 500
 			eb.Error = "An unexpected error occurred"
 			eb.Errors = nil
