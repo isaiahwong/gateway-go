@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.accounts.v1;
 
-option go_package = "accounts";
+option go_package = "accounts/v1;accounts";
 
 // Preferences
 message Preferences {

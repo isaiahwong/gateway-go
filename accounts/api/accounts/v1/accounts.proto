@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package api.accounts.v2;
+package api.accounts.v1;
 
-option go_package = "accounts";
+option go_package = "accounts/v1;accounts";
 
 service AccountsService {
   rpc Introspect(IntrospectRequest) returns (IntrospectResponse) {}

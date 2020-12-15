@@ -79,7 +79,12 @@ func protoc(proto string, includes []string) error {
 	for _, in := range includes {
 		cmdstr += fmt.Sprintf("-I%v ", in)
 	}
-	cmdstr += fmt.Sprintf("--go_out=plugins=grpc:./protogen --grpc-gateway_out=logtostderr=true,allow_repeated_fields_in_body=true:protogen %v/*.proto ", proto)
+	out := "./protogen"
+	cmdstr += fmt.Sprintf("--go_out ./%[1]v --go-grpc_out %[1]v "+
+		"--grpc-gateway_out %[1]v "+
+		"--grpc-gateway_opt logtostderr=true "+
+		"--grpc-gateway_opt allow_repeated_fields_in_body=true "+
+		"%[2]v/*.proto ", out, proto)
 
 	cmd := buildCmd("/bin/sh", "-c", cmdstr)
 	if err := cmd.Run(); err != nil {
