@@ -24,8 +24,11 @@ The gateway-go requires a local installation of the Google protocol buffers comp
 Install the following packages with `go get -u`
 
 ```
-go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-go get -u github.com/golang/protobuf/protoc-gen-go
+go install \
+    github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
+    github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
+    google.golang.org/protobuf/cmd/protoc-gen-go \
+    google.golang.org/grpc/cmd/protoc-gen-go-grpc
 ```
 
 Ensure `$GOBIN` is configured
