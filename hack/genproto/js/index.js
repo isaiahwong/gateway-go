@@ -168,10 +168,6 @@ function main() {
   const protos = loadMap(mapFile);
   // loadPaths({ protos, paths: PROTOS, includeDirs: INCLUDES });
   // Match based on file path
-  console.log(protos)
-  protos.filter(p => {
-    console.log(condition, p.path)
-  })
   writeToFile(protos.filter(p => condition[p.path] !== undefined));
   console.log('index.js: JSON file has been saved.');
 }

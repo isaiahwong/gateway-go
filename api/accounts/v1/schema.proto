@@ -11,7 +11,7 @@ message Preferences {
   }
 
   message PushNotifications {
-    bool unsubscribe_from_all = 1; 
+    bool unsubscribe_from_all = 1;
   }
 
   string language = 1;
@@ -50,7 +50,7 @@ message UserProfileGoogle {
   ProfileName name = 4;
   repeated ProfileEmails emails = 5;
   repeated ProfilePhotos photos = 6;
-} 
+}
 
 message Auth {
   UserProfileFacebook facebook = 1;
@@ -64,7 +64,7 @@ message Auth {
   string password_hash_method = 9;
   string password_reset_id = 10;
   string password_reset_token = 11;
-  int64 password_reset_expires = 12;  
+  int64 password_reset_expires = 12;
   int64 password_modified = 13;
 
   bool verified = 14;
