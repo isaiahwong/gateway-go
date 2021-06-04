@@ -7,15 +7,16 @@ import (
 )
 
 type options struct {
-	logger          *logrus.Logger
-	k8sClient       *k8s.Client
-	redisClient     *redis.Client
-	production      bool
-	certFile        string
-	keyFile         string
-	addr            string
-	accountsAddr    string
-	accountsTimeout int
+	logger           *logrus.Logger
+	k8sClient        *k8s.Client
+	redisClient      *redis.Client
+	production       bool
+	certFile         string
+	keyFile          string
+	addr             string
+	accountsDisabled bool
+	accountsAddr     string
+	accountsTimeout  int
 }
 
 // Option sets options for Server.
@@ -54,6 +55,13 @@ func WithK8SClient(k *k8s.Client) Option {
 func WithAppEnv(e bool) Option {
 	return func(o *options) {
 		o.production = e
+	}
+}
+
+// WithAccountsDisabled returns an Option determines if accounts authentication is enabled
+func WithAccountsDisabled(disable bool) Option {
+	return func(o *options) {
+		o.accountsDisabled = disable
 	}
 }
 

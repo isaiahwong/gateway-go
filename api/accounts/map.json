@@ -1,0 +1,8 @@
+[
+  {
+    "protos": ["accounts/v1"],
+    "includes": [
+      "accounts/v1"
+    ]
+  }
+]

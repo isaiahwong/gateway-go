@@ -2,8 +2,6 @@ FROM golang:1.13-alpine as builder
 
 RUN apk add --update nodejs npm
 RUN apk add --update npm
-RUN apk add --update nodejs npm
-RUN apk add --update npm
 RUN apk add --update curl
 RUN apk add --update git
 RUN apk add --update unzip

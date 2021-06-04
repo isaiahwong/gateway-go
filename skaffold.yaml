@@ -4,7 +4,7 @@ metadata:
   name: gateway-go
 build:
   artifacts:
-  - image: registry.gitlab.com/canderlabs/gateway-go
+  - image: registry.gitlab.com/isaiahwong/gateway-go
     docker:
       dockerfile: Dockerfile.dev
 deploy:

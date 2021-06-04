@@ -1,0 +1,14 @@
+version: v1beta1
+name: buf.build/isaiahwong/gateway-go
+deps:
+  - buf.build/beta/googleapis
+build:
+  roots:
+    - .
+  excludes:
+lint:
+  use:
+    - DEFAULT
+breaking:
+  use:
+    - FILE

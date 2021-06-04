@@ -1,6 +1,6 @@
 $(shell PATH=$PATH:$GOPATH/bin)
 BUILD_ID := $(shell git rev-parse --short HEAD 2>/dev/null || echo no-commit-id)
-IMAGE_NAME := registry.gitlab.com/canderlabs/gateway-go
+IMAGE_NAME := registry.gitlab.com/isaiahwong/gateway-go
 VERSION := 0.0.1
 
 PROTO_DIR := ../../pb
@@ -49,16 +49,26 @@ genproto:
 	go run main.go -b -m accounts/map.json
 
 genproto-manual:
-	if [ ! -d "protogen" ]; then \
-			mkdir protogen; \
+	if [ ! -d "api/gen" ]; then \
+			mkdir api/gen; \
 	fi
 
-	protoc \
-		-I./proto/accounts-proto/api \
-		-I$(GOPATH)/src \
-		-I$(GOPATH)/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
-		--grpc-gateway_out=logtostderr=true,allow_repeated_fields_in_body=true:protogen \
-		--swagger_out=logtostderr=true:protogen \
-		--go_out=plugins=grpc:./protogen \
-		./proto/accounts-proto/api/accounts/v1/*.proto
+	#protoc \
+#		-I./api/accounts/v1 \
+#		-I./api/third_party/googleapis \
+#		--grpc-gateway_opt logtostderr=true \
+#		--grpc-gateway_opt paths=./api/gen \
+#		./api/accounts/v1/*.proto
 
+	protoc \
+		-I./api \
+		-I./api/third_party/googleapis \
+		--go_out ./api/gen \
+		--go-grpc_out ./api/gen \
+		--go_opt paths=source_relative \
+		--go-grpc_opt paths=source_relative \
+		--grpc-gateway_out ./api/gen \
+		--grpc-gateway_opt logtostderr=true \
+		--grpc-gateway_opt paths=source_relative \
+		--grpc-gateway_opt generate_unbound_methods=true \
+		./api/accounts/v1/*.proto

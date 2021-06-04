@@ -22,15 +22,6 @@ import (
 // AppEnv specifies if the app is in `development` or `production`
 // Host specifies host address or dns
 // Port specifies the port the server will run on
-// EnableStackdriver specifies if google stackdriver will be enabled
-// StripeSecret specifies Stripe api production key
-// StripeSecretDev specifies Stripe api key for development
-// StripeEndpointSecret specifies Stripe api key for webhook verification
-// PaypalClientIDDev specifies Paypal api key for development
-// PaypalSecretDev specifies Paypal api key secret for development
-// PaypalClientID
-// PaypalSecret         string
-// PaypalURL specifies Paypal api URL for request
 // DBUri
 // DBUriDev
 // DBUriTest
@@ -42,6 +33,7 @@ type EnvConfig struct {
 	Production        bool
 	Host              string
 	Address           string
+	AccountsDisable   bool
 	AccountsAddress   string
 	WebhookAddress    string
 	WebhookSecretKey  string
@@ -88,6 +80,7 @@ func loadEnv() {
 		DisableK8S:        mapEnvWithDefaults("DISABLE_K8S_CLIENT", "true") == "true",
 		Address:           mapEnvWithDefaults("ADDRESS", ":5000"),
 		AccountsAddress:   mapEnvWithDefaults("ACCOUNTS_ADDRESS", ":50051"),
+		AccountsDisable:   mapEnvWithDefaults("ACCOUNTS_DISABLE", "false") == "true",
 		WebhookAddress:    mapEnvWithDefaults("WEBHOOK_ADDRESS", ":8443"),
 		WebhookKeyDir:     mapEnvWithDefaults("WEBHOOK_KEY_DIR", ""),
 		WebhookCertDir:    mapEnvWithDefaults("WEBHOOK_CERT_DIR", ""),
@@ -136,6 +129,7 @@ func main() {
 
 	gs, err := server.NewGatewayServer(
 		server.WithAddress(config.Address),
+		server.WithAccountsDisabled(config.AccountsDisable),
 		server.WithAccountsAddr(config.AccountsAddress),
 		server.WithAccountsTimeout(config.AccountsTimeout),
 		server.WithLogger(logger),
@@ -164,6 +158,7 @@ func main() {
 
 	// Start gateway Server
 	gs.Run(ctx)
+
 	// Start Webhook server
 	ws.Run(ctx)
 

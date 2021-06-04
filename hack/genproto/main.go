@@ -99,7 +99,7 @@ func generateProtos(mapFile []byte) error {
 		log.Fatal(err)
 	}
 	// Create directory
-	path := "protogen"
+	path := "proto"
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.Mkdir(path, 0700)
 	}

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const protoLoader = require('@grpc/proto-loader');
 
-const PROTO_GEN = `${__dirname}/../../../protogen`;
+const PROTO_GEN = `${__dirname}/../../../api`;
 const PROTOS = [
   `${__dirname}/../../../proto/api`,
   `${__dirname}/../../../proto/accounts-proto/api`,

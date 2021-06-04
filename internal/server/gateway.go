@@ -4,6 +4,8 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/isaiahwong/gateway-go/api"
+	"github.com/isaiahwong/gateway-go/api/gen/accounts/v1"
 	"net/http"
 	"strconv"
 	"strings"
@@ -17,15 +19,13 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	runtime "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/isaiahwong/gateway-go/internal/common/log"
 	"github.com/isaiahwong/gateway-go/internal/common/validator"
 	"github.com/isaiahwong/gateway-go/internal/k8s"
 	"github.com/isaiahwong/gateway-go/internal/k8s/enum"
 	"github.com/isaiahwong/gateway-go/internal/observer"
 	"github.com/isaiahwong/gateway-go/internal/services"
-	"github.com/isaiahwong/gateway-go/protogen"
-	accountsV1 "github.com/isaiahwong/gateway-go/protogen/accounts/v1"
 	"github.com/tmc/grpc-websocket-proxy/wsproxy"
 )
 
@@ -38,7 +38,7 @@ type GatewayServer struct {
 	services    map[string]*k8s.APIService
 	logger      *logrus.Logger
 	k8sClient   *k8s.Client
-	accountSVC  accountsV1.AccountsServiceClient
+	accountSVC  accounts.AccountsServiceClient
 	redisClient *redis.Client
 }
 
@@ -90,7 +90,7 @@ func forwardHeaders(_ context.Context, r *http.Request) metadata.MD {
 func (gs *GatewayServer) newGrpcMux(ctx context.Context) *runtime.ServeMux {
 	mux := runtime.NewServeMux(
 		runtime.WithMetadata(forwardHeaders),
-		runtime.WithProtoErrorHandler(ProtoErrorWithLogger(gs.logger)),
+		//runtime.WithErrorHandler(ProtoErrorWithLogger(gs.logger)),
 	)
 	return mux
 }
@@ -184,7 +184,7 @@ func (gs *GatewayServer) authorization(svc *k8s.APIService, cb gin.HandlerFunc) 
 		ip := c.ClientIP()
 		md := metadata.Pairs("x-forwarded-for", ip)
 		ctx = metadata.NewOutgoingContext(ctx, md)
-		res, err := gs.accountSVC.Introspect(ctx, &accountsV1.IntrospectRequest{Token: token})
+		res, err := gs.accountSVC.Introspect(ctx, &accounts.IntrospectRequest{Token: token})
 		if err != nil {
 			gs.logger.Errorf("authentication: %v", err)
 			c.JSON(401, em)
@@ -222,7 +222,7 @@ func (gs *GatewayServer) applyHTTP(r *gin.Engine, svc *k8s.APIService, target st
 
 func (gs *GatewayServer) applyGrpc(r *gin.Engine, svc *k8s.APIService, serviceName string, conn *grpc.ClientConn, target string, route string) error {
 	var err error
-	var svcDesc *protogen.ServiceDesc
+	var svcDesc *api.ServiceDesc
 	if r == nil {
 		return InvalidParams("r router is nil")
 	}
@@ -230,7 +230,7 @@ func (gs *GatewayServer) applyGrpc(r *gin.Engine, svc *k8s.APIService, serviceNa
 		return InvalidParams("serviceName is empty")
 	}
 	// Check if service exists in proto definition
-	for k, s := range protogen.GetProtos() {
+	for k, s := range api.GetProtos() {
 		// Splits service name i.e api.auth.authservice ["api", "auth", "authservice"]
 		split := strings.Split(k, ".")
 		// Formats it to dash i.e api-auth-authservice
@@ -378,11 +378,11 @@ func (gs *GatewayServer) deleteServices(service *k8s.APIService) {
 // fetchAllServices fetches all services from cluster
 func (gs *GatewayServer) fetchAllServices() error {
 	// Get K8S Services in cluster
-	svcs, err := gs.k8sClient.GetServices("default")
+	svc, err := gs.k8sClient.GetServices("default")
 	if err != nil {
 		return fmt.Errorf("fetchAllServices: GetServices: %v", err)
 	}
-	for _, d := range svcs {
+	for _, d := range svc {
 		o, err := gs.k8sClient.CoreAPI().Admission().UnmarshalK8SObject(d)
 		if err != nil {
 			gs.logger.Errorf("fetchAllServices: %v", err)
@@ -524,18 +524,26 @@ func (gs *GatewayServer) Run(ctx context.Context) error {
 
 // NewGatewayServer returns a new gin server
 func NewGatewayServer(opt ...Option) (*GatewayServer, error) {
+	var ac accounts.AccountsServiceClient
+	var err error
+
 	opts := defaultGatewayOptions
 	for _, o := range opt {
 		o(&opts)
 	}
-	// Initialize AccountsService
-	ac, err := services.NewAccountsClient(
-		services.WithAddress(opts.accountsAddr),
-		services.WithTimeout(opts.accountsTimeout),
-	)
-	if err != nil {
-		return nil, err
+
+	if !opts.accountsDisabled {
+		// Initialize AccountsService
+		ac, err = services.NewAccountsClient(
+			services.WithAddress(opts.accountsAddr),
+			services.WithTimeout(opts.accountsTimeout),
+		)
+		if err != nil {
+			return nil, err
+		}
 	}
+
+
 	// Initialize Http Server
 	s := &http.Server{
 		Addr: opts.addr,
