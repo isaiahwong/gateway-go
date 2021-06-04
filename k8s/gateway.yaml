@@ -36,6 +36,7 @@ data:
   WEBHOOK_KEY_DIR: "/run/secrets/tls/tls.key"
   WEBHOOK_CERT_DIR: "/run/secrets/tls/tls.crt"
 
+  ACCOUNTS_DISABLE: "true"
   ACCOUNTS_ADDRESS: "api-accounts-v1-accountsservice.default.svc.cluster.local:5000"
   ACCOUNTS_TIMEOUT: "10"
 
@@ -67,7 +68,7 @@ spec:
       serviceAccountName: api-gateway
       containers:
         - name: gateway
-          image: registry.gitlab.com/canderlabs/gateway-go
+          image: registry.gitlab.com/isaiahwong/gateway-go
           imagePullPolicy: IfNotPresent
           ports:
             - name: gateway-port
@@ -111,7 +112,7 @@ metadata:
 ---
 # Role
 kind: Role
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   namespace: default
   name: api-gateway
@@ -122,7 +123,7 @@ rules:
 
 ---
 # Role Binding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   namespace: default
@@ -141,7 +142,7 @@ subjects:
 ## Gateway Webhook
 ##################################################
 
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: gateway-webhook
@@ -159,6 +160,8 @@ webhooks:
         apiGroups: ['*']
         apiVersions: ['*']
         resources: ['services']
+    admissionReviewVersions: ["v1", "v1beta1"]
+    sideEffects: None
 
 ---
 apiVersion: v1

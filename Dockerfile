@@ -1,4 +1,4 @@
-FROM golang:1.13-alpine as builder
+FROM golang:1.17-alpine as builder
 
 RUN apk add --update nodejs npm
 RUN apk add --update npm

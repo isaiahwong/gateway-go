@@ -53,13 +53,6 @@ genproto-manual:
 			mkdir api/gen; \
 	fi
 
-	#protoc \
-#		-I./api/accounts/v1 \
-#		-I./api/third_party/googleapis \
-#		--grpc-gateway_opt logtostderr=true \
-#		--grpc-gateway_opt paths=./api/gen \
-#		./api/accounts/v1/*.proto
-
 	protoc \
 		-I./api \
 		-I./api/third_party/googleapis \
