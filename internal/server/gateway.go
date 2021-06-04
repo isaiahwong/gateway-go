@@ -19,7 +19,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/isaiahwong/gateway-go/internal/common/log"
 	"github.com/isaiahwong/gateway-go/internal/common/validator"
 	"github.com/isaiahwong/gateway-go/internal/k8s"
@@ -542,7 +542,6 @@ func NewGatewayServer(opt ...Option) (*GatewayServer, error) {
 			return nil, err
 		}
 	}
-
 
 	// Initialize Http Server
 	s := &http.Server{

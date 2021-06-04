@@ -1,7 +1,7 @@
 const fs = require('fs');
 const protoLoader = require('@grpc/proto-loader');
 
-const PROTO_GEN = `${__dirname}/../../../api`;
+const PROTO_GEN = `${__dirname}/../../../api/gen`;
 const PROTOS = [
   `${__dirname}/../../../proto/api`,
   `${__dirname}/../../../proto/accounts-proto/api`,
@@ -99,7 +99,7 @@ function loadProtoDir({ refProtos = [], path = [], filePath, includeDirs }) {
       const f = path.slice(parent.length);
       const fp = fullPath.slice(path.length);
 
-      proto.path = f
+      proto.path = `/${f}`
       proto.filePath = fp;
       refProtos.push(proto);
     }
@@ -129,8 +129,8 @@ function ensureGatewayGenerated(initialPath, filePath, object = {}) {
   if (!filePath) filePath = initialPath;
   fs.readdirSync(filePath).forEach(fileName => {
     const fullPath = appendTrailingSlash(filePath) + fileName;
+    // Folder
     if (!fs.statSync(fullPath).isFile()) {
-      // Folder
       ensureGatewayGenerated(initialPath, fullPath, object);
     } else if (GEN_GW.test(fileName)) {
       const p = initialPath.split('/');
@@ -168,6 +168,10 @@ function main() {
   const protos = loadMap(mapFile);
   // loadPaths({ protos, paths: PROTOS, includeDirs: INCLUDES });
   // Match based on file path
+  console.log(protos)
+  protos.filter(p => {
+    console.log(condition, p.path)
+  })
   writeToFile(protos.filter(p => condition[p.path] !== undefined));
   console.log('index.js: JSON file has been saved.');
 }

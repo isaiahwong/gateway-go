@@ -48,7 +48,7 @@ func server() error {
 
 func main() {
 	// Get options from flags
-	mapFile = flag.String("m",  "proto/map.json", "Directory of proto mapfile")
+	mapFile = flag.String("m",  "api/map.json", "Directory of proto map file")
 	build := flag.Bool("b", false, "Runs builder methods only")
 	flag.Parse()
 	pipeline := []func() error{

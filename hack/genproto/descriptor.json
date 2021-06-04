@@ -1,1 +1,1 @@
-[]
+[{"serviceName":"AccountsService","methods":[{"methodName":"Introspect","path":"/api.accounts.v1.AccountsService/Introspect"}],"packageSvc":"api.accounts.v1.AccountsService","package":"api.accounts.v1","currentPackage":"accounts","originalPackage":"api_accounts_v1","path":"/accounts/v1","filePath":"/accounts.proto"}]

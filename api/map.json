@@ -1,0 +1,11 @@
+[
+  {
+    "protos": [
+      "api/accounts/v1"
+    ],
+    "includes": [
+      "api/third_party/googleapis",
+      "api/"
+    ]
+  }
+]

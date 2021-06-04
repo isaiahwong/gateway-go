@@ -79,7 +79,7 @@ func protoc(proto string, includes []string) error {
 	for _, in := range includes {
 		cmdstr += fmt.Sprintf("-I%v ", in)
 	}
-	out := "./protogen"
+	out := "./api/gen"
 	cmdstr += fmt.Sprintf("--go_out ./%[1]v --go-grpc_out %[1]v "+
 		"--grpc-gateway_out %[1]v "+
 		"--grpc-gateway_opt logtostderr=true "+
@@ -99,7 +99,7 @@ func generateProtos(mapFile []byte) error {
 		log.Fatal(err)
 	}
 	// Create directory
-	path := "proto"
+	path := "api/gen"
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.Mkdir(path, 0700)
 	}
