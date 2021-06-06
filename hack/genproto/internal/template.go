@@ -9,7 +9,7 @@ import (
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	{{- range $i, $e := .}}
-	"github.com/isaiahwong/gateway-go/api/gen{{ $e.Path }}"
+	"github.com/isaiahwong/gateway-go/api/go/gen{{ $e.Path }}"
 	{{- end}}
 )
 

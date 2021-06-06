@@ -30,7 +30,7 @@ func genCode() error {
 		"go", "run", "hack/genproto/main.go",
 		"-d", "hack/genproto/descriptor.json",
 		"-m", *mapFile,
-		"-o", "api/api.pb.gw.go",
+		"-o", "api/go/api.pb.gw.go",
 	)
 	if err := gen.Run(); err != nil {
 		return err

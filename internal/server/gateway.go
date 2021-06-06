@@ -4,8 +4,8 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/isaiahwong/gateway-go/api"
-	"github.com/isaiahwong/gateway-go/api/gen/accounts/v1"
+	api "github.com/isaiahwong/gateway-go/api/go"
+	"github.com/isaiahwong/gateway-go/api/go/gen/accounts/v1"
 	"net/http"
 	"strconv"
 	"strings"

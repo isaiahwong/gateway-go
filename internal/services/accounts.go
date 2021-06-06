@@ -2,7 +2,7 @@ package services
 
 import (
 	"fmt"
-	"github.com/isaiahwong/gateway-go/api/gen/accounts/v1"
+	"github.com/isaiahwong/gateway-go/api/go/gen/accounts/v1"
 )
 
 // NewAccountsClient returns a new MailServiceClient

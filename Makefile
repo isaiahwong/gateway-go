@@ -56,8 +56,8 @@ genproto-manual:
 	protoc \
 		-I./api \
 		-I./api/third_party/googleapis \
-		--go_out ./api/gen \
-		--go-grpc_out ./api/gen \
+		--go_out ./api/go/gen \
+		--go-grpc_out ./api/go/gen \
 		--go_opt paths=source_relative \
 		--go-grpc_opt paths=source_relative \
 		--grpc-gateway_out ./api/gen \

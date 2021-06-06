@@ -6,7 +6,7 @@ import (
 	"context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
-	"github.com/isaiahwong/gateway-go/api/gen/accounts/v1"
+	"github.com/isaiahwong/gateway-go/api/go/gen/accounts/v1"
 )
 
 type ServiceDesc struct {
