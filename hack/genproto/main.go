@@ -147,7 +147,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 	pipeline := []func() error{
 		func() error {
 			return generateProtos(mapFile)

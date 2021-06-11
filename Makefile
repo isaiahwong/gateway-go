@@ -1,6 +1,6 @@
 $(shell PATH=$PATH:$GOPATH/bin)
 BUILD_ID := $(shell git rev-parse --short HEAD 2>/dev/null || echo no-commit-id)
-IMAGE_NAME := registry.gitlab.com/isaiahwong/gateway-go
+IMAGE_NAME := registry.gitlab.com/eco_system/gateway
 VERSION := 0.0.1
 
 PROTO_DIR := ../../pb
@@ -16,7 +16,7 @@ build:
 build-sha: 
 	docker build -t $(IMAGE_NAME):$(BUILD_ID) . --rm=true
 
-push: 
+push:
 	docker push $(IMAGE_NAME):latest
 
 push-sha:
@@ -49,12 +49,16 @@ genproto:
 	go run main.go -b -m accounts/map.json
 
 genproto-manual:
-	if [ ! -d "api/gen" ]; then \
-			mkdir api/gen; \
+	if [ ! -d "api/go" ]; then \
+			mkdir api/go; \
+	fi
+
+	if [ ! -d "api/go/gen" ]; then \
+			mkdir api/go/gen; \
 	fi
 
 	protoc \
-		-I./api \
+		-I./api/ecosystem \
 		-I./api/third_party/googleapis \
 		--go_out ./api/go/gen \
 		--go-grpc_out ./api/go/gen \
@@ -64,4 +68,4 @@ genproto-manual:
 		--grpc-gateway_opt logtostderr=true \
 		--grpc-gateway_opt paths=source_relative \
 		--grpc-gateway_opt generate_unbound_methods=true \
-		./api/accounts/v1/*.proto
+		./api/ecosystem/accounts/v1/*.proto

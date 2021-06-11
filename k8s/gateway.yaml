@@ -68,7 +68,7 @@ spec:
       serviceAccountName: api-gateway
       containers:
         - name: gateway
-          image: registry.gitlab.com/isaiahwong/gateway-go
+          image: registry.gitlab.com/eco_system/gateway
           imagePullPolicy: IfNotPresent
           ports:
             - name: gateway-port

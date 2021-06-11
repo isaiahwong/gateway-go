@@ -2,15 +2,6 @@ const fs = require('fs');
 const protoLoader = require('@grpc/proto-loader');
 
 const PROTO_GEN = `${__dirname}/../../../api/go/gen`;
-const PROTOS = [
-  `${__dirname}/../../../proto/api`,
-  `${__dirname}/../../../proto/accounts-proto/api`,
-];
-const INCLUDES = [
-  `${__dirname}/../../../proto/accounts-proto/api`,
-  `${__dirname}/../../../proto/api`,
-  `${__dirname}/../../../proto/third_party/googleapis`
-];
 
 const GEN_GW = new RegExp(/\.(pb.gw.go)/g);
 const GEN_PB = new RegExp(/\.(pb.go)/g);
