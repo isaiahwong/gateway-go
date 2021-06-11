@@ -432,7 +432,7 @@ func (gs *GatewayServer) directAdmission(d []byte) {
 	}
 	// Filter admission request if incoming request is not of K8S Service Object.
 	if strings.ToLower(ar.Request.Kind.Kind) != string(enum.K8SServiceObject) {
-		gs.logger.Printf("Admission request %v is not service")
+		gs.logger.Printf("Request request %v is not service")
 		return
 	}
 	// Filter admission request if incoming request does not have api-service labeled.
@@ -472,7 +472,6 @@ func (gs *GatewayServer) subscribe(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			case msg, ok := <-subCh:
-				fmt.Println(msg)
 				if !ok {
 					return
 				}

@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"github.com/isaiahwong/gateway-go/internal/k8s"
 	"io/ioutil"
 	"net/http"
 
@@ -63,8 +64,18 @@ type WebhookServer struct {
 	keyFile    string
 }
 
-func webhookMiddleware(an *AdmissionNotifier) func(*gin.Engine) {
+func webhookMiddleware(an *AdmissionNotifier, k *k8s.Client) func(*gin.Engine) {
 	return func(r *gin.Engine) {
+		var ar *k8s.AdmissionRegistration
+
+		res := gin.H{
+			"success":    true,
+			"apiVersion": "admission.k8s.io/v1",
+			"kind":       "AdmissionReview",
+			"response": map[string]interface{}{
+				"allowed": true,
+			},
+		}
 		r.Use(gin.Recovery())
 		r.POST("/admission", func(c *gin.Context) {
 			if c.Request.Body == nil {
@@ -76,20 +87,28 @@ func webhookMiddleware(an *AdmissionNotifier) func(*gin.Engine) {
 
 			// Read the content
 			bodyBytes, err := ioutil.ReadAll(c.Request.Body)
+
 			if err != nil {
 				// TODO Log
-				c.AbortWithStatusJSON(400, gin.H{"success": false})
+				res["response"].(map[string]interface{})["allowed"] = false
+				c.AbortWithStatusJSON(200, res)
 				return
 			}
 
+			ar, err = k.CoreAPI().Admission().Unmarshal(bodyBytes)
+			if err != nil {
+				// TODO Log
+				res["response"].(map[string]interface{})["allowed"] = false
+				c.AbortWithStatusJSON(200, res)
+				return
+			}
 			// Restore the io.ReadCloser to its original state
 			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 
 			// Notify all subscribes
 			an.Notify(observer.Event{Data: bodyBytes})
-			c.JSON(200, gin.H{
-				"success": true,
-			})
+			res["response"].(map[string]interface{})["uid"] = ar.Request.UID
+			c.JSON(200, res)
 		})
 	}
 }
@@ -142,7 +161,7 @@ func NewWebhook(opt ...Option) (*WebhookServer, error) {
 		observers:   map[observer.Observer]struct{}{},
 		redisClient: opts.redisClient,
 	}
-	r, err := newRouter(webhookMiddleware(an))
+	r, err := newRouter(webhookMiddleware(an, opts.k8sClient))
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +170,7 @@ func NewWebhook(opt ...Option) (*WebhookServer, error) {
 		Handler: r,
 	}
 	ws := &WebhookServer{
-		Name:       "Admission Webhook Server",
+		Name:       "Request Webhook Server",
 		Server:     s,
 		Notifier:   an,
 		production: opts.production,

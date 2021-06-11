@@ -146,6 +146,7 @@ func main() {
 		server.WithTLSCredentials(config.WebhookCertDir, config.WebhookKeyDir),
 		server.WithAppEnv(config.Production),
 		server.WithPubSub(r),
+		server.WithK8SClient(k),
 	)
 	if err != nil {
 		logger.Fatalf("New Webhook error: %v", err)

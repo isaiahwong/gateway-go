@@ -74,6 +74,7 @@ type AdmissionRequest struct {
 	Namespace string    `json:"namespace"`
 	Object    K8SObject `json:"object"`
 	OldObject K8SObject `json:"oldObject"`
+	UID       string    `json:"uid"`
 }
 
 // AdmissionRegistration represents k8s admissionregistration.k8s.io/v1

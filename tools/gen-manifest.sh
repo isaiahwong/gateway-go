@@ -59,7 +59,8 @@ generate_keys() {
   openssl genrsa -out webhook-server-tls.key 2048
   # Generate a Certificate Signing Request (CSR) for the private key, and sign it with the private key of the CA.
   openssl req -new -key webhook-server-tls.key -subj "/CN=$service.$namespace.svc" \
-      | openssl x509 -req -CA ca.crt -CAkey ca.key -CAcreateserial -out webhook-server-tls.crt
+      | openssl x509 -req -CA ca.crt -CAkey ca.key -extfile <(printf "subjectAltName=DNS:$service.$namespace.svc") -CAcreateserial -out webhook-server-tls.crt
+
 }
 
 gen_cert() {
