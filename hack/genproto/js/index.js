@@ -90,7 +90,7 @@ function loadProtoDir({ refProtos = [], path = [], filePath, includeDirs }) {
       const f = path.slice(parent.length);
       const fp = fullPath.slice(path.length);
 
-      proto.path = `/${f}`
+      proto.path = `${f}`
       proto.filePath = fp;
       refProtos.push(proto);
     }
