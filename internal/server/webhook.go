@@ -3,14 +3,14 @@ package server
 import (
 	"bytes"
 	"context"
-	"github.com/isaiahwong/gateway-go/internal/k8s"
+	"gitlab.com/eco_system/gateway/internal/k8s"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v7"
-	"github.com/isaiahwong/gateway-go/internal/common/log"
-	"github.com/isaiahwong/gateway-go/internal/observer"
+	"gitlab.com/eco_system/gateway/internal/common/log"
+	"gitlab.com/eco_system/gateway/internal/observer"
 	"github.com/sirupsen/logrus"
 )
 

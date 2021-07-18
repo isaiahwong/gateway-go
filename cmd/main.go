@@ -9,11 +9,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	redisV7 "github.com/go-redis/redis/v7"
-	"github.com/isaiahwong/gateway-go/internal/common"
-	"github.com/isaiahwong/gateway-go/internal/common/log"
-	"github.com/isaiahwong/gateway-go/internal/k8s"
-	"github.com/isaiahwong/gateway-go/internal/redis"
-	"github.com/isaiahwong/gateway-go/internal/server"
+	"gitlab.com/eco_system/gateway/internal/common"
+	"gitlab.com/eco_system/gateway/internal/common/log"
+	"gitlab.com/eco_system/gateway/internal/k8s"
+	"gitlab.com/eco_system/gateway/internal/redis"
+	"gitlab.com/eco_system/gateway/internal/server"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 )

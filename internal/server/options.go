@@ -2,7 +2,7 @@ package server
 
 import (
 	"github.com/go-redis/redis/v7"
-	"github.com/isaiahwong/gateway-go/internal/k8s"
+	"gitlab.com/eco_system/gateway/internal/k8s"
 	"github.com/sirupsen/logrus"
 )
 

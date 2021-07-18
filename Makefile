@@ -64,7 +64,7 @@ genproto-manual:
 		--go-grpc_out ./api/go/gen \
 		--go_opt paths=source_relative \
 		--go-grpc_opt paths=source_relative \
-		--grpc-gateway_out ./api/gen \
+		--grpc-gateway_out ./api/go/gen \
 		--grpc-gateway_opt logtostderr=true \
 		--grpc-gateway_opt paths=source_relative \
 		--grpc-gateway_opt generate_unbound_methods=true \

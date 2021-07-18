@@ -4,8 +4,8 @@ package server
 import (
 	"context"
 	"fmt"
-	api "github.com/isaiahwong/gateway-go/api/go"
-	"github.com/isaiahwong/gateway-go/api/go/gen/accounts/v1"
+	api "gitlab.com/eco_system/gateway/api/go"
+	"gitlab.com/eco_system/gateway/api/go/gen/accounts/v1"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,13 +20,13 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/isaiahwong/gateway-go/internal/common/log"
-	"github.com/isaiahwong/gateway-go/internal/common/validator"
-	"github.com/isaiahwong/gateway-go/internal/k8s"
-	"github.com/isaiahwong/gateway-go/internal/k8s/enum"
-	"github.com/isaiahwong/gateway-go/internal/observer"
-	"github.com/isaiahwong/gateway-go/internal/services"
 	"github.com/tmc/grpc-websocket-proxy/wsproxy"
+	"gitlab.com/eco_system/gateway/internal/common/log"
+	"gitlab.com/eco_system/gateway/internal/common/validator"
+	"gitlab.com/eco_system/gateway/internal/k8s"
+	"gitlab.com/eco_system/gateway/internal/k8s/enum"
+	"gitlab.com/eco_system/gateway/internal/observer"
+	"gitlab.com/eco_system/gateway/internal/services"
 )
 
 // GatewayServer encapsulates GatewayServer and Observer

@@ -10,7 +10,7 @@ import (
 	"os/exec"
 	"text/template"
 
-	"github.com/isaiahwong/gateway-go/hack/genproto/internal"
+	"gitlab.com/eco_system/gateway/hack/genproto/internal"
 )
 
 var descriptor, out, mapFile *string
@@ -135,7 +135,7 @@ func readDescriptor(svcs *[]internal.ServiceDesc, file string) error {
 }
 
 func format() error {
-	format := exec.Command("go", "fmt", "github.com/isaiahwong/gateway-go/internal/server")
+	format := exec.Command("go", "fmt", "gitlab.com/eco_system/gateway/internal/server")
 	if err := format.Run(); err != nil {
 		return err
 	}

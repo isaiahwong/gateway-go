@@ -14,7 +14,7 @@ WORKDIR /gateway
 
 COPY go.mod . 
 COPY go.sum .
-# Get dependancies - will also be cached if we won't change mod/sum
+# Get dependencies - will also be cached if we won't change mod/sum
 RUN go mod download
 # COPY the source code as the last step
 COPY . .

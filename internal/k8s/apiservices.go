@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/isaiahwong/gateway-go/internal/common/validator"
+	"gitlab.com/eco_system/gateway/internal/common/validator"
 )
 
 // APIServicesGetter has a method to return a APIServiceInterface.
