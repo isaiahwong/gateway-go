@@ -43,7 +43,7 @@ data:
   DISABLE_K8S_CLIENT: "false"
   ENABLE_STACKDRIVER: "false"
 
-  PROTO_MAP: "proto/map.json"
+  PROTO_MAP: "api/map.json"
 
   # Redis
   REDIS_ADDR: 'redis-gateway.redis-gateway-service:6379'
