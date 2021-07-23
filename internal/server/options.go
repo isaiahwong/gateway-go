@@ -2,8 +2,8 @@ package server
 
 import (
 	"github.com/go-redis/redis/v7"
-	"gitlab.com/eco_system/gateway/internal/k8s"
 	"github.com/sirupsen/logrus"
+	"gitlab.com/eco_system/gateway/internal/k8s"
 )
 
 type options struct {

@@ -9,9 +9,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v7"
+	"github.com/sirupsen/logrus"
 	"gitlab.com/eco_system/gateway/internal/common/log"
 	"gitlab.com/eco_system/gateway/internal/observer"
-	"github.com/sirupsen/logrus"
 )
 
 type RedisChannel string

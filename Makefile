@@ -69,3 +69,7 @@ genproto-manual:
 		--grpc-gateway_opt paths=source_relative \
 		--grpc-gateway_opt generate_unbound_methods=true \
 		./api/ecosystem/accounts/v1/*.proto
+
+apply-registry-secret:
+	kubectl create secret docker-registry gitlab-auth --docker-server=registry.gitlab.com --docker-username=$DUSER --docker-password=$DPW --docker-email=iisaiah.dev@gmail.com
+
