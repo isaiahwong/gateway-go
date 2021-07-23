@@ -4,7 +4,6 @@ package server
 import (
 	"context"
 	"fmt"
-	api "gitlab.com/eco_system/gateway/api/go"
 	"gitlab.com/eco_system/gateway/api/go/gen/accounts/v1"
 	"net/http"
 	"strconv"
@@ -222,7 +221,7 @@ func (gs *GatewayServer) applyHTTP(r *gin.Engine, svc *k8s.APIService, target st
 
 func (gs *GatewayServer) applyGrpc(r *gin.Engine, svc *k8s.APIService, serviceName string, conn *grpc.ClientConn, target string, route string) error {
 	var err error
-	var svcDesc *api.ServiceDesc
+	var svcDesc *ServiceDesc
 	if r == nil {
 		return InvalidParams("r router is nil")
 	}
@@ -230,7 +229,7 @@ func (gs *GatewayServer) applyGrpc(r *gin.Engine, svc *k8s.APIService, serviceNa
 		return InvalidParams("serviceName is empty")
 	}
 	// Check if service exists in proto definition
-	for k, s := range api.GetProtos() {
+	for k, s := range GetProtos() {
 		// Splits service name i.e api.auth.authservice ["api", "auth", "authservice"]
 		split := strings.Split(k, ".")
 		// Formats it to dash i.e api-auth-authservice
