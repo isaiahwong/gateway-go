@@ -23,7 +23,7 @@ type ServiceDesc struct {
 
 var _Services = map[string]ServiceDesc{
 	{{- range $i, $e := .}}
-	"{{ $e.Package }}.{{ $e.ServiceName}}": ServiceDesc{
+	"{{ $e.Package }}.{{ $e.ServiceName}}": {
 		ServiceName: "{{ $e.ServiceName }}",
 		PackageSVC: "{{ $e.PackageSVC }}",
 		Package:        "{{ $e.Package }}",

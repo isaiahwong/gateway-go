@@ -104,11 +104,11 @@ function loadMap(mapFile) {
   }
   mapFile.forEach((m) => {
     m.includes = m.includes.map((i) => `${__dirname}/../../../${i}`)
-    m.protos.forEach((p) => 
-      loadProtoDir({ 
-        refProtos: protos, 
-        path: `${__dirname}/../../../${p}`, 
-        includeDirs: m.includes 
+    m.protos.forEach((p) =>
+      loadProtoDir({
+        refProtos: protos,
+        path: `${__dirname}/../../../${p}`,
+        includeDirs: m.includes
       }))
   })
   return protos;
@@ -144,7 +144,7 @@ function writeToFile(obj) {
 
 function getArgs() {
   const args = process.argv.slice(2);
-  switch(args[0]) {
+  switch (args[0]) {
     case "--map": case "-m":
       const data = args[1];
       return JSON.parse(data);
