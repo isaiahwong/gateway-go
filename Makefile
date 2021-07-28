@@ -36,6 +36,15 @@ build-push:
 clean:
 	docker rmi $( docker images | grep '<none>') --force 2>/dev/null
 
+set-image:
+	kubectl set image deployments/gateway-deployment gateway=$(IMAGE_NAME)
+
+set-image-latest:
+	kubectl set image deployments/gateway-deployment gateway=$(IMAGE_NAME):latest
+
+set-image-sha:
+	kubectl set image deployments/gateway-deployment gateway=$(IMAGE_NAME):${BUILD_ID}
+
 gen-manifest:
 	./tools/gen-manifest.sh gen-cert --image $(IMAGE_NAME)
 

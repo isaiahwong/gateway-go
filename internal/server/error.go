@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/ptypes/any"
-	runtime "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
 )
 
 type invalidParams struct {
@@ -60,10 +60,10 @@ func ProtoErrorWithLogger(l *logrus.Logger) func(context.Context, *runtime.Serve
 		const fallback = `{"error": "An unexpected error occurred."}`
 		eb := errorBody{}
 
-		code := runtime.HTTPStatusFromCode(grpc.Code(protoErr))
+		code := runtime.HTTPStatusFromCode(status.Code(protoErr))
 
-		w.Header().Set("Content-type", marshaler.ContentType())
-		eb.Error = grpc.ErrorDesc(protoErr)
+		w.Header().Set("Content-type", marshaler.ContentType(""))
+		eb.Error = status.Convert(protoErr).Message()
 
 		md, ok := runtime.ServerMetadataFromContext(ctx)
 		if ok {

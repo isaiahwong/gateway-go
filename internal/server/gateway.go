@@ -4,12 +4,13 @@ package server
 import (
 	"context"
 	"fmt"
-	"gitlab.com/eco_system/gateway/api/go/gen/accounts/v1"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"gitlab.com/eco_system/gateway/api/go/gen/accounts/v1"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v7"
@@ -89,7 +90,7 @@ func forwardHeaders(_ context.Context, r *http.Request) metadata.MD {
 func (gs *GatewayServer) newGrpcMux(ctx context.Context) *runtime.ServeMux {
 	mux := runtime.NewServeMux(
 		runtime.WithMetadata(forwardHeaders),
-		//runtime.WithErrorHandler(ProtoErrorWithLogger(gs.logger)),
+		runtime.WithErrorHandler(ProtoErrorWithLogger(gs.logger)),
 	)
 	return mux
 }
@@ -183,6 +184,7 @@ func (gs *GatewayServer) authorization(svc *k8s.APIService, cb gin.HandlerFunc) 
 		ip := c.ClientIP()
 		md := metadata.Pairs("x-forwarded-for", ip)
 		ctx = metadata.NewOutgoingContext(ctx, md)
+		fmt.Println(gs.accountSVC)
 		res, err := gs.accountSVC.Introspect(ctx, &accounts.IntrospectRequest{Token: token})
 		if err != nil {
 			gs.logger.Errorf("authentication: %v", err)
