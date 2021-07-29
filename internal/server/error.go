@@ -40,7 +40,7 @@ type Error struct {
 	Param   string      `json:"param"`
 	Message string      `json:"message"`
 	Value   interface{} `json:"value"`
-	Errors  [][]Error   `json:"errors"`
+	Errors  []*Error    `json:"errors"`
 }
 
 type errorBody struct {
@@ -50,7 +50,7 @@ type errorBody struct {
 	// It should be the exact same message as the Error field.
 	// Message string     `protobuf:"bytes,2,name=message" json:"message"`
 	Details []*any.Any `protobuf:"bytes,3,rep,name=details" json:"details,omitempty"`
-	Errors  []Error    `json:"errors"`
+	Errors  []*Error   `json:"errors"`
 }
 
 // ProtoErrorWithLogger replies to the request with the error.
@@ -66,7 +66,7 @@ func ProtoErrorWithLogger(l *logrus.Logger, strict bool) func(context.Context, *
 		md, ok := runtime.ServerMetadataFromContext(ctx)
 		if ok {
 			if details := md.TrailerMD.Get("errors-bin"); len(details) > 0 {
-				e := []Error{}
+				e := []*Error{}
 				// Maps json values to error body
 				err := json.Unmarshal([]byte(details[0]), &e)
 				if err != nil {
