@@ -90,7 +90,7 @@ func forwardHeaders(_ context.Context, r *http.Request) metadata.MD {
 func (gs *GatewayServer) newGrpcMux(ctx context.Context) *runtime.ServeMux {
 	mux := runtime.NewServeMux(
 		runtime.WithMetadata(forwardHeaders),
-		runtime.WithErrorHandler(ProtoErrorWithLogger(gs.logger)),
+		runtime.WithErrorHandler(ProtoErrorWithLogger(gs.logger, gs.production)),
 	)
 	return mux
 }

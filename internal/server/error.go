@@ -55,16 +55,14 @@ type errorBody struct {
 
 // ProtoErrorWithLogger replies to the request with the error.
 // Overrides runtime.error HTTPError
-func ProtoErrorWithLogger(l *logrus.Logger) func(context.Context, *runtime.ServeMux, runtime.Marshaler, http.ResponseWriter, *http.Request, error) {
+func ProtoErrorWithLogger(l *logrus.Logger, strict bool) func(context.Context, *runtime.ServeMux, runtime.Marshaler, http.ResponseWriter, *http.Request, error) {
 	return func(ctx context.Context, m *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, req *http.Request, protoErr error) {
 		const fallback = `{"error": "An unexpected error occurred."}`
 		eb := errorBody{}
-
 		code := runtime.HTTPStatusFromCode(status.Code(protoErr))
 
 		w.Header().Set("Content-type", marshaler.ContentType(""))
 		eb.Error = status.Convert(protoErr).Message()
-
 		md, ok := runtime.ServerMetadataFromContext(ctx)
 		if ok {
 			if details := md.TrailerMD.Get("errors-bin"); len(details) > 0 {
@@ -103,8 +101,11 @@ func ProtoErrorWithLogger(l *logrus.Logger) func(context.Context, *runtime.Serve
 			eb.Error = "An unexpected error occurred"
 			eb.Errors = nil
 		}
-		// Change message of inner workings
-		knownTypeErrors(protoErr, &eb)
+		// Change message of sensitive messages
+		// Usually gRPC marshal or type errors
+		if strict {
+			knownTypeErrors(&eb)
+		}
 		w.WriteHeader(code)
 
 		err = json.NewEncoder(w).Encode(eb)
@@ -115,12 +116,14 @@ func ProtoErrorWithLogger(l *logrus.Logger) func(context.Context, *runtime.Serve
 	}
 }
 
-func knownTypeErrors(err error, eb *errorBody) {
+// knownTypeErrors replaces sensitive errors with a said message
+func knownTypeErrors(eb *errorBody) {
 	known := []string{
 		"json: cannot unmarshal",
+		"proto: (line",
 	}
 	for _, k := range known {
-		if strings.Contains(err.Error(), k) {
+		if strings.Contains(eb.Error, k) {
 			eb.Error = "Malformed Request"
 		}
 	}
