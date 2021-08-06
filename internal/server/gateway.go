@@ -184,7 +184,6 @@ func (gs *GatewayServer) authorization(svc *k8s.APIService, cb gin.HandlerFunc) 
 		ip := c.ClientIP()
 		md := metadata.Pairs("x-forwarded-for", ip)
 		ctx = metadata.NewOutgoingContext(ctx, md)
-		fmt.Println(gs.accountSVC)
 		res, err := gs.accountSVC.Introspect(ctx, &accounts.IntrospectRequest{Token: token})
 		if err != nil {
 			gs.logger.Errorf("authentication: %v", err)
