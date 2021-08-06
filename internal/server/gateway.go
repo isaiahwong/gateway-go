@@ -18,6 +18,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/tmc/grpc-websocket-proxy/wsproxy"
@@ -89,6 +90,11 @@ func forwardHeaders(_ context.Context, r *http.Request) metadata.MD {
 // newGrpcMux creates a new mux that handles grpc calls.
 func (gs *GatewayServer) newGrpcMux(ctx context.Context) *runtime.ServeMux {
 	mux := runtime.NewServeMux(
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+			MarshalOptions: protojson.MarshalOptions{
+				UseProtoNames: true,
+			},
+		}),
 		runtime.WithMetadata(forwardHeaders),
 		runtime.WithErrorHandler(ProtoErrorWithLogger(gs.logger, gs.production)),
 	)
