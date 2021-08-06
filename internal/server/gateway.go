@@ -94,6 +94,9 @@ func (gs *GatewayServer) newGrpcMux(ctx context.Context) *runtime.ServeMux {
 			MarshalOptions: protojson.MarshalOptions{
 				UseProtoNames: true,
 			},
+			UnmarshalOptions: protojson.UnmarshalOptions{
+				DiscardUnknown: true,
+			},
 		}),
 		runtime.WithMetadata(forwardHeaders),
 		runtime.WithErrorHandler(ProtoErrorWithLogger(gs.logger, gs.production)),
