@@ -92,7 +92,8 @@ func (gs *GatewayServer) newGrpcMux(ctx context.Context) *runtime.ServeMux {
 	mux := runtime.NewServeMux(
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
 			MarshalOptions: protojson.MarshalOptions{
-				UseProtoNames: true,
+				UseProtoNames:  true,
+				UseEnumNumbers: true,
 			},
 			UnmarshalOptions: protojson.UnmarshalOptions{
 				DiscardUnknown: true,
