@@ -2,7 +2,8 @@ package services
 
 import (
 	"fmt"
-	"gitlab.com/eco_system/gateway/api/go/gen/accounts/v1"
+
+	"gitlab.com/eco_system/gateway/api/gen/go/accounts/v1"
 )
 
 // NewAccountsClient returns a new MailServiceClient

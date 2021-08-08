@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"gitlab.com/eco_system/gateway/api/go/gen/accounts/v1"
+	"gitlab.com/eco_system/gateway/api/gen/go/accounts/v1"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v7"
